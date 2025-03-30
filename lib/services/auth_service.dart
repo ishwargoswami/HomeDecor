@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_foodybite/models/user_model.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -76,42 +77,68 @@ class AuthService {
   // Sign in with Google
   Future<UserModel?> signInWithGoogle() async {
     try {
-      final GoogleSignInAccount? googleSignInAccount = await _googleSignIn.signIn();
-      if (googleSignInAccount != null) {
-        final GoogleSignInAuthentication googleSignInAuthentication =
-            await googleSignInAccount.authentication;
+      // Handle web platform differently
+      if (kIsWeb) {
+        // Create a new provider
+        GoogleAuthProvider googleProvider = GoogleAuthProvider();
+        
+        // Add scopes if needed
+        googleProvider.addScope('https://www.googleapis.com/auth/contacts.readonly');
+        googleProvider.setCustomParameters({
+          'login_hint': 'user@example.com'
+        });
 
-        final AuthCredential credential = GoogleAuthProvider.credential(
-          accessToken: googleSignInAuthentication.accessToken,
-          idToken: googleSignInAuthentication.idToken,
-        );
-
-        final UserCredential result = await _auth.signInWithCredential(credential);
+        // Sign in using a popup
+        final UserCredential result = await _auth.signInWithPopup(googleProvider);
         final User? user = result.user;
 
-        // Check if the user already exists in Firestore
-        DocumentSnapshot doc = await _firestore.collection('users').doc(user?.uid).get();
-        
-        // If the user doesn't exist, create a new document
-        if (!doc.exists && user != null) {
-          await _firestore.collection('users').doc(user.uid).set({
-            'uid': user.uid,
-            'email': user.email,
-            'name': user.displayName,
-            'photoUrl': user.photoURL,
-            'createdAt': FieldValue.serverTimestamp(),
-          });
-        }
-
-        // Save user session
-        await _saveUserSession(true);
-        
+        _handleSignedInUser(user);
         return _userFromFirebaseUser(user);
+      } else {
+        // For Android/iOS flow
+        final GoogleSignInAccount? googleSignInAccount = await _googleSignIn.signIn();
+        if (googleSignInAccount != null) {
+          final GoogleSignInAuthentication googleSignInAuthentication =
+              await googleSignInAccount.authentication;
+
+          final AuthCredential credential = GoogleAuthProvider.credential(
+            accessToken: googleSignInAuthentication.accessToken,
+            idToken: googleSignInAuthentication.idToken,
+          );
+
+          final UserCredential result = await _auth.signInWithCredential(credential);
+          final User? user = result.user;
+
+          _handleSignedInUser(user);
+          return _userFromFirebaseUser(user);
+        }
       }
       return null;
     } catch (e) {
       print(e.toString());
       return null;
+    }
+  }
+
+  // Helper method to handle signed in user
+  Future<void> _handleSignedInUser(User? user) async {
+    if (user != null) {
+      // Check if the user already exists in Firestore
+      DocumentSnapshot doc = await _firestore.collection('users').doc(user.uid).get();
+      
+      // If the user doesn't exist, create a new document
+      if (!doc.exists) {
+        await _firestore.collection('users').doc(user.uid).set({
+          'uid': user.uid,
+          'email': user.email,
+          'name': user.displayName,
+          'photoUrl': user.photoURL,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      // Save user session
+      await _saveUserSession(true);
     }
   }
 
