@@ -6,9 +6,11 @@ import 'package:flutter_foodybite/screens/main_screen.dart';
 import 'package:flutter_foodybite/screens/splash_screen.dart';
 import 'package:flutter_foodybite/screens/add_project.dart';
 import 'package:flutter_foodybite/screens/add_decor_item.dart';
+import 'package:flutter_foodybite/screens/project_dashboard.dart';
 import 'package:flutter_foodybite/services/auth_provider.dart';
 import 'package:flutter_foodybite/services/decor_provider.dart';
 import 'package:flutter_foodybite/services/theme_provider.dart';
+import 'package:flutter_foodybite/services/storage_service.dart';
 import 'package:flutter_foodybite/util/const.dart';
 import 'package:provider/provider.dart';
 
@@ -36,6 +38,7 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => DecorProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        Provider(create: (_) => StorageService()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
@@ -51,6 +54,7 @@ class _MyAppState extends State<MyApp> {
               '/main': (context) => MainScreen(),
               '/add_project': (context) => AddProjectScreen(),
               '/add_decor_item': (context) => AddDecorItemScreen(),
+              '/dashboard': (context) => ProjectDashboardScreen(),
             },
             initialRoute: '/',
           );

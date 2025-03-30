@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_foodybite/screens/signup_screen.dart';
-import 'package:flutter_foodybite/services/auth_provider.dart';
+import 'package:flutter_foodybite/services/auth_provider.dart' as app_auth;
+import 'package:flutter_foodybite/services/decor_provider.dart';
 import 'package:flutter_foodybite/util/const.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -13,7 +15,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   bool _obscureText = true;
+  bool _isLoading = false;
   
   @override
   void dispose() {
@@ -30,31 +34,60 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _submitForm() async {
     if (_formKey.currentState!.validate()) {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      setState(() {
+        _isLoading = true;
+      });
       
-      bool success = await authProvider.signInWithEmail(
-        _emailController.text.trim(),
-        _passwordController.text.trim(),
-      );
-      
-      if (success) {
-        Navigator.of(context).pushReplacementNamed('/main');
-      } else {
+      try {
+        UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        );
+        
+        // Get user data
+        final user = userCredential.user;
+        if (user != null) {
+          // Sign in successful, sync data
+          final decorProvider = Provider.of<DecorProvider>(context, listen: false);
+          await decorProvider.forceSyncData();
+          
+          // Navigate to home
+          Navigator.pushReplacementNamed(context, '/main');
+        }
+      } on FirebaseAuthException catch (e) {
+        String errorMessage = 'Authentication failed';
+        
+        if (e.code == 'user-not-found') {
+          errorMessage = 'No user found with this email';
+        } else if (e.code == 'wrong-password') {
+          errorMessage = 'Wrong password provided';
+        } else if (e.code == 'invalid-email') {
+          errorMessage = 'Invalid email format';
+        }
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              authProvider.error,
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-            ),
-            backgroundColor: Constants.errorColor,
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
           ),
         );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
   }
 
   void _signInWithGoogle() async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final authProvider = Provider.of<app_auth.AuthProvider>(context, listen: false);
     
     bool success = await authProvider.signInWithGoogle();
     
@@ -106,7 +139,7 @@ class _LoginScreenState extends State<LoginScreen> {
               onPressed: () async {
                 final email = resetEmailController.text.trim();
                 if (email.isNotEmpty) {
-                  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                  final authProvider = Provider.of<app_auth.AuthProvider>(context, listen: false);
                   bool success = await authProvider.resetPassword(email);
                   
                   Navigator.pop(context);
@@ -136,7 +169,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
+    final authProvider = Provider.of<app_auth.AuthProvider>(context);
     
     return Scaffold(
       body: Container(
@@ -151,13 +184,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   // Logo and app name
                   Icon(
-                    Icons.restaurant_menu,
+                    Icons.home_work_rounded,
                     size: 80,
                     color: Constants.lightAccent,
                   ),
                   SizedBox(height: 16),
                   Text(
-                    "Foody Bite",
+                    "HomeDecor Planner",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 28,
@@ -230,7 +263,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   
                   // Login button
                   ElevatedButton(
-                    onPressed: authProvider.isLoading ? null : _submitForm,
+                    onPressed: _isLoading ? null : _submitForm,
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 12),
                       backgroundColor: Constants.lightAccent,
@@ -239,7 +272,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: authProvider.isLoading
+                    child: _isLoading
                         ? CircularProgressIndicator(color: Colors.white)
                         : Text(
                             "Login",

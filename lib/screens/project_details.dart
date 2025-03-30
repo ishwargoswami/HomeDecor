@@ -4,6 +4,9 @@ import 'package:flutter_foodybite/services/decor_provider.dart';
 import 'package:flutter_foodybite/util/const.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:provider/provider.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'package:flutter_foodybite/services/storage_service.dart';
 
 class ProjectDetails extends StatefulWidget {
   final String id;
@@ -32,11 +35,14 @@ class ProjectDetails extends StatefulWidget {
 
 class _ProjectDetailsState extends State<ProjectDetails> {
   late String _id;
+  late String _img;
   late double _progress;
   late List<dynamic> _items;
   late double? _budget;
   List<dynamic> _completedItems = [];
   bool _isEditing = false;
+  bool _isUploading = false;
+  List<ProjectModel> _projects = [];
   
   final TextEditingController _addItemController = TextEditingController();
   final TextEditingController _budgetController = TextEditingController();
@@ -45,9 +51,14 @@ class _ProjectDetailsState extends State<ProjectDetails> {
   void initState() {
     super.initState();
     _id = widget.id;
+    _img = widget.img;
     _progress = widget.progress;
     _items = List.from(widget.items);
     _budget = widget.budget;
+    
+    // Initialize projects list
+    final provider = Provider.of<DecorProvider>(context, listen: false);
+    _projects = provider.projects;
     
     if (_budget != null) {
       _budgetController.text = _budget!.toStringAsFixed(0);
@@ -71,20 +82,7 @@ class _ProjectDetailsState extends State<ProjectDetails> {
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
               title: Text(widget.name),
-              background: Image.network(
-                widget.img,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: Colors.grey[300],
-                    child: Icon(
-                      Icons.image_not_supported,
-                      color: Colors.grey[600],
-                      size: 50,
-                    ),
-                  );
-                },
-              ),
+              background: _buildProjectImage(),
             ),
             actions: <Widget>[
               IconButton(
@@ -608,7 +606,7 @@ class _ProjectDetailsState extends State<ProjectDetails> {
       name: widget.name,
       description: widget.description,
       room: widget.room,
-      imageUrl: widget.img,
+      imageUrl: _img,
       progress: _progress,
       items: List<String>.from(_items),
       budget: budget,
@@ -620,6 +618,122 @@ class _ProjectDetailsState extends State<ProjectDetails> {
       SnackBar(
         content: Text('Project updated successfully!'),
         backgroundColor: Theme.of(context).colorScheme.secondary,
+      ),
+    );
+  }
+
+  Future<void> _uploadProjectImage() async {
+    try {
+      final imagePicker = ImagePicker();
+      final XFile? pickedFile = await imagePicker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+      
+      if (pickedFile == null) {
+        // User canceled the picker
+        return;
+      }
+      
+      setState(() {
+        _isUploading = true;
+      });
+      
+      final storageService = StorageService();
+      final File imageFile = File(pickedFile.path);
+      
+      final String? downloadUrl = await storageService.uploadImage(
+        imageFile, 
+        'project_images',
+      );
+      
+      if (downloadUrl != null) {
+        // Update project with new image URL
+        final decorProvider = Provider.of<DecorProvider>(context, listen: false);
+        
+        final project = _projects.firstWhere((p) => p.id == _id);
+        final updatedProject = ProjectModel(
+          id: project.id,
+          name: project.name,
+          description: project.description,
+          room: project.room,
+          imageUrl: downloadUrl, // Use the new image URL
+          progress: project.progress,
+          items: project.items,
+          budget: project.budget,
+          userId: project.userId,
+        );
+        
+        await decorProvider.updateProject(updatedProject);
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Project image updated successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        
+        setState(() {
+          _img = downloadUrl;
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error uploading image: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() {
+        _isUploading = false;
+      });
+    }
+  }
+
+  Widget _buildProjectImage() {
+    return GestureDetector(
+      onTap: _uploadProjectImage,
+      child: Stack(
+        children: [
+          Container(
+            height: 200,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: NetworkImage(_img),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 10,
+            right: 10,
+            child: Container(
+              padding: EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.secondary,
+                shape: BoxShape.circle,
+              ),
+              child: _isUploading
+                  ? SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : Icon(
+                      Icons.camera_alt,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+            ),
+          ),
+        ],
       ),
     );
   }

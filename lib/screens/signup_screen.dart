@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_foodybite/services/auth_provider.dart';
+import 'package:flutter_foodybite/services/auth_provider.dart' as app_auth;
+import 'package:flutter_foodybite/services/decor_provider.dart';
 import 'package:flutter_foodybite/util/const.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SignupScreen extends StatefulWidget {
   @override
@@ -14,8 +17,12 @@ class _SignupScreenState extends State<SignupScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isLoading = false;
   
   @override
   void dispose() {
@@ -23,6 +30,7 @@ class _SignupScreenState extends State<SignupScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
   
@@ -40,32 +48,73 @@ class _SignupScreenState extends State<SignupScreen> {
 
   void _submitForm() async {
     if (_formKey.currentState!.validate()) {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      setState(() {
+        _isLoading = true;
+      });
       
-      bool success = await authProvider.registerWithEmail(
-        _emailController.text.trim(),
-        _passwordController.text.trim(),
-        _nameController.text.trim(),
-      );
-      
-      if (success) {
-        Navigator.of(context).pushReplacementNamed('/main');
-      } else {
+      try {
+        // Create user with email and password
+        UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        );
+        
+        // Get created user
+        final user = userCredential.user;
+        if (user != null) {
+          // Update profile
+          await user.updateDisplayName(_nameController.text.trim());
+          
+          // Update additional user info in Firestore
+          await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+            'name': _nameController.text.trim(),
+            'email': _emailController.text.trim(),
+            'phoneNumber': _phoneController.text.trim(),
+            'created': FieldValue.serverTimestamp(),
+            'lastUpdated': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+          
+          // Initialize user data
+          final decorProvider = Provider.of<DecorProvider>(context, listen: false);
+          await decorProvider.forceSyncData();
+          
+          // Navigate to home
+          Navigator.pushReplacementNamed(context, '/main');
+        }
+      } on FirebaseAuthException catch (e) {
+        String errorMessage = 'Registration failed';
+        
+        if (e.code == 'weak-password') {
+          errorMessage = 'The password provided is too weak';
+        } else if (e.code == 'email-already-in-use') {
+          errorMessage = 'An account already exists for that email';
+        } else if (e.code == 'invalid-email') {
+          errorMessage = 'Invalid email format';
+        }
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              authProvider.error,
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-            ),
-            backgroundColor: Constants.errorColor,
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
           ),
         );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
   }
 
   void _signInWithGoogle() async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final authProvider = Provider.of<app_auth.AuthProvider>(context, listen: false);
     
     bool success = await authProvider.signInWithGoogle();
     
@@ -86,7 +135,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
+    final authProvider = Provider.of<app_auth.AuthProvider>(context);
     
     return Scaffold(
       appBar: AppBar(
@@ -120,7 +169,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   SizedBox(height: 12),
                   Text(
-                    "Sign up to start exploring great food nearby",
+                    "Sign up to start planning your home decor projects",
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.grey,
@@ -248,7 +297,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   
                   // Sign up button
                   ElevatedButton(
-                    onPressed: authProvider.isLoading ? null : _submitForm,
+                    onPressed: _isLoading ? null : _submitForm,
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 12),
                       backgroundColor: Constants.lightAccent,
@@ -257,7 +306,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: authProvider.isLoading
+                    child: _isLoading
                         ? CircularProgressIndicator(color: Colors.white)
                         : Text(
                             "Sign Up",

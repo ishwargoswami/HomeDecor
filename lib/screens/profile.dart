@@ -3,6 +3,7 @@ import 'package:flutter_foodybite/models/user_model.dart';
 import 'package:flutter_foodybite/screens/login_screen.dart';
 import 'package:flutter_foodybite/services/auth_provider.dart';
 import 'package:flutter_foodybite/services/theme_provider.dart';
+import 'package:flutter_foodybite/services/decor_provider.dart';
 import 'package:provider/provider.dart';
 
 class Profile extends StatelessWidget {
@@ -39,6 +40,88 @@ class Profile extends StatelessWidget {
           SizedBox(height: 20),
           // Profile options
           _buildProfileOptions(context, authProvider),
+          
+          // Backup and Sync section
+          SizedBox(height: 20),
+          Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            elevation: 4,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Data & Sync",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 15),
+                  Consumer<DecorProvider>(
+                    builder: (context, provider, child) {
+                      return ListTile(
+                        leading: Icon(
+                          Icons.sync,
+                          color: provider.isSyncing
+                              ? Theme.of(context).colorScheme.secondary
+                              : Colors.grey[600],
+                        ),
+                        title: Text("Sync Data"),
+                        subtitle: Text(
+                          provider.isSyncing
+                              ? "Syncing in progress..."
+                              : "Last sync: Recently",
+                        ),
+                        trailing: provider.isSyncing
+                            ? SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Theme.of(context).colorScheme.secondary,
+                                ),
+                              )
+                            : Icon(Icons.navigate_next),
+                        onTap: provider.isSyncing
+                            ? null
+                            : () async {
+                                await provider.forceSyncData();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Data synced successfully!'),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+                              },
+                      );
+                    },
+                  ),
+                  Divider(),
+                  ListTile(
+                    leading: Icon(
+                      Icons.cloud_done,
+                      color: Colors.grey[600],
+                    ),
+                    title: Text("Backup Data"),
+                    subtitle: Text("Save your projects and items"),
+                    trailing: Icon(Icons.navigate_next),
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Your data is automatically backed up in the cloud'),
+                          backgroundColor: Colors.blue,
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );

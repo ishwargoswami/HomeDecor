@@ -51,11 +51,21 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     bool isLoggedIn = await authProvider.isLoggedIn();
     
+    print("User is logged in: $isLoggedIn");
+    
     if (isLoggedIn) {
-      Navigator.of(context).pushReplacementNamed('/main');
+      print("Navigating to main screen from splash");
+      // Use pushAndRemoveUntil to ensure clean navigation
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        '/main',
+        (route) => false,
+      );
     } else {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => LoginScreen()),
+      print("Navigating to login screen from splash");
+      // Use pushAndRemoveUntil to ensure clean navigation
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        '/login',
+        (route) => false,
       );
     }
   }
@@ -121,7 +131,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      Icons.home_outlined,
+                      Icons.home_work_rounded,
                       size: 80,
                       color: Colors.white,
                     ),

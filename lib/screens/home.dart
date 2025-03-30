@@ -53,6 +53,15 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
     _startAutoSlider();
+    
+    // Ensure data is loaded
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = Provider.of<DecorProvider>(context, listen: false);
+      if (provider.decorItems.isEmpty) {
+        print("Triggering data reload in Home screen");
+        provider.initializeData();
+      }
+    });
   }
 
   @override
@@ -316,9 +325,11 @@ class _HomeState extends State<Home> {
             final categories = provider.categories;
             
             if (categories.isEmpty) {
+              print("No categories found, showing shimmer");
               return _buildCategoryShimmer();
             }
             
+            print("Building grid with ${categories.length} categories");
             return GridView.builder(
               shrinkWrap: true,
               physics: NeverScrollableScrollPhysics(),
@@ -341,6 +352,44 @@ class _HomeState extends State<Home> {
   }
 
   Widget _buildCategoryItem(Map category) {
+    // Function to get icon based on category name if no icon is provided
+    IconData getIconForCategory(String categoryName) {
+      switch(categoryName.toLowerCase()) {
+        case 'living room':
+          return Icons.weekend;
+        case 'bedroom':
+          return Icons.bed;
+        case 'kitchen':
+          return Icons.kitchen;
+        case 'bathroom':
+          return Icons.bathtub;
+        case 'office':
+          return Icons.computer;
+        case 'dining room':
+          return Icons.dinner_dining;
+        case 'outdoor':
+          return Icons.deck;
+        default:
+          return Icons.category;
+      }
+    }
+    
+    // Get the icon either from the provided icon code or fallback to name-based icon
+    IconData iconData;
+    try {
+      if (category.containsKey('icon') && category['icon'] != null) {
+        iconData = IconData(
+          int.parse(category['icon']),
+          fontFamily: 'MaterialIcons',
+        );
+      } else {
+        iconData = getIconForCategory(category['name']);
+      }
+    } catch (e) {
+      print("Error loading icon: $e");
+      iconData = getIconForCategory(category['name']);
+    }
+
     return Column(
       children: [
         Container(
@@ -350,10 +399,7 @@ class _HomeState extends State<Home> {
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
-            IconData(
-              int.parse(category['icon'] ?? '0xe3ab'),
-              fontFamily: 'MaterialIcons',
-            ),
+            iconData,
             color: Theme.of(context).colorScheme.secondary,
             size: 28,
           ),
@@ -439,27 +485,78 @@ class _HomeState extends State<Home> {
         SizedBox(height: 16),
         Consumer<DecorProvider>(
           builder: (context, provider, child) {
-            final items = provider.getFilteredDecorItems();
-            
-            if (items.isEmpty) {
+            // First check if data is initializing
+            if (provider.decorItems.isEmpty) {
+              print("No items found, showing shimmer");
+              
+              // Force loading data after a short delay if still empty
+              if (!provider.isDataInitialized) {
+                print("Data not initialized, triggering initialization");
+                Future.delayed(Duration.zero, () {
+                  if (mounted) {
+                    provider.initializeData();
+                  }
+                });
+              } else {
+                // Add a delay to ensure we don't get stuck in loading state
+                Future.delayed(Duration(seconds: 1), () {
+                  if (provider.decorItems.isEmpty && mounted) {
+                    print("Still no items after delay, forcing reload");
+                    provider.loadLocalData();
+                  }
+                });
+              }
+              
+              // Show shimmer loading effect
               return _buildProductShimmer();
             }
             
-            return GridView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 0.7,
-                mainAxisSpacing: 15,
-                crossAxisSpacing: 15,
-              ),
-              itemCount: items.length > 4 ? 4 : items.length,
-              itemBuilder: (context, index) {
-                DecorItemModel item = items[index];
-                return _buildProductItem(item);
-              },
-            );
+            final items = provider.decorItems;
+            print("Building grid with ${items.length} products");
+            
+            return items.isEmpty 
+                ? Center(
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 48,
+                          color: Colors.grey[400],
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          "No products available",
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        ElevatedButton(
+                          onPressed: () => provider.loadLocalData(),
+                          child: Text("Reload"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).colorScheme.secondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : GridView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      childAspectRatio: 0.7,
+                      mainAxisSpacing: 15,
+                      crossAxisSpacing: 15,
+                    ),
+                    itemCount: items.length > 4 ? 4 : items.length,
+                    itemBuilder: (context, index) {
+                      DecorItemModel item = items[index];
+                      return _buildProductItem(item);
+                    },
+                  );
           },
         ),
       ],
@@ -467,101 +564,122 @@ class _HomeState extends State<Home> {
   }
 
   Widget _buildProductItem(DecorItemModel item) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 2,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 3,
-            child: ClipRRect(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-              child: Image.network(
-                item.imageUrl ?? "",
-                fit: BoxFit.cover,
-                width: double.infinity,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: Colors.grey[200],
-                    child: Center(
-                      child: Icon(
-                        Icons.image_not_supported,
-                        color: Colors.grey[400],
-                      ),
-                    ),
-                  );
-                },
-              ),
+    return GestureDetector(
+      onTap: () {
+        // Navigate to product detail
+        Navigator.pushNamed(
+          context, 
+          '/detail', 
+          arguments: {'item': item}
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 2,
+              offset: Offset(0, 1),
             ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    item.title ?? "Product Name",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    item.category ?? "Category",
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 12,
-                    ),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "\$${item.price?.toStringAsFixed(2) ?? '0.00'}",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 3,
+              child: ClipRRect(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                child: Image.network(
+                  item.imageUrl ?? "",
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Center(
+                      child: CircularProgressIndicator(
+                        value: loadingProgress.expectedTotalBytes != null
+                            ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                            : null,
+                      ),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    print("Error loading image: $error");
+                    return Container(
+                      color: Colors.grey[200],
+                      child: Center(
+                        child: Icon(
+                          Icons.image_not_supported,
+                          color: Colors.grey[400],
                         ),
                       ),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.star,
-                            color: Colors.amber,
-                            size: 14,
-                          ),
-                          SizedBox(width: 2),
-                          Text(
-                            "${item.rating?.toStringAsFixed(1) ?? '0.0'}",
-                            style: TextStyle(
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
+                    );
+                  },
+                ),
               ),
             ),
-          ),
-        ],
+            Expanded(
+              flex: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      item.title ?? "Product Name",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      item.category ?? "Category",
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 12,
+                      ),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "\$${item.price?.toStringAsFixed(2) ?? '0.00'}",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.star,
+                              color: Colors.amber,
+                              size: 14,
+                            ),
+                            SizedBox(width: 2),
+                            Text(
+                              "${item.rating?.toStringAsFixed(1) ?? '0.0'}",
+                              style: TextStyle(
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

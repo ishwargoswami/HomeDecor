@@ -25,11 +25,14 @@ class AuthProvider extends ChangeNotifier {
     _clearError();
     
     try {
+      print("Attempting to sign in with email...");
       UserModel? result = await _authService.signInWithEmailAndPassword(email, password);
       _user = result;
+      print("Sign in successful: ${result != null}");
       _setLoading(false);
       return result != null;
     } catch (e) {
+      print("Sign in error: $e");
       _setError(e.toString());
       _setLoading(false);
       return false;
@@ -42,11 +45,15 @@ class AuthProvider extends ChangeNotifier {
     _clearError();
     
     try {
+      print("Attempting to register with email...");
       UserModel? result = await _authService.registerWithEmailAndPassword(email, password, name);
       _user = result;
+      print("Registration successful: ${result != null}");
+      print("User data: ${result?.toJson()}");
       _setLoading(false);
       return result != null;
     } catch (e) {
+      print("Registration error: $e");
       _setError(e.toString());
       _setLoading(false);
       return false;

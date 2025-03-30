@@ -3,6 +3,9 @@ import 'package:flutter_foodybite/models/decor_item_model.dart';
 import 'package:flutter_foodybite/services/decor_provider.dart';
 import 'package:flutter_foodybite/util/const.dart';
 import 'package:provider/provider.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'package:flutter_foodybite/services/storage_service.dart';
 
 class AddDecorItemScreen extends StatefulWidget {
   @override
@@ -42,6 +45,9 @@ class _AddDecorItemScreenState extends State<AddDecorItemScreen> {
     "Other"
   ];
   
+  File? _imageFile;
+  bool _isUploading = false;
+
   @override
   void dispose() {
     _titleController.dispose();
@@ -168,20 +174,8 @@ class _AddDecorItemScreenState extends State<AddDecorItemScreen> {
               _buildRatingSelector(),
               SizedBox(height: 16),
               
-              // Image URL
-              TextFormField(
-                controller: _imageUrlController,
-                decoration: InputDecoration(
-                  labelText: 'Image URL',
-                  border: OutlineInputBorder(),
-                  helperText: 'Leave empty to use a placeholder image',
-                ),
-              ),
-              SizedBox(height: 24),
-              
               // Image Preview
-              if (_imageUrlController.text.isNotEmpty)
-                _buildImagePreview(),
+              _buildImagePreview(),
               SizedBox(height: 24),
               
               // Submit Button
@@ -270,72 +264,215 @@ class _AddDecorItemScreenState extends State<AddDecorItemScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle("Image Preview"),
-        SizedBox(height: 8.0),
-        Container(
-          height: 200,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey),
-            borderRadius: BorderRadius.circular(8.0),
+        Text(
+          'Item Image',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8.0),
-            child: Image.network(
-              _imageUrlController.text,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.error_outline,
-                        color: Colors.red,
-                        size: 32.0,
-                      ),
-                      SizedBox(height: 8.0),
-                      Text(
-                        "Invalid image URL",
-                        style: TextStyle(color: Colors.red),
-                      ),
-                    ],
-                  ),
-                );
-              },
+        ),
+        SizedBox(height: 12),
+        GestureDetector(
+          onTap: _pickImage,
+          child: Container(
+            height: 200,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey[300]!),
             ),
+            child: _imageFile != null
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.file(
+                      _imageFile!,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                : _imageUrlController.text.isNotEmpty
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          _imageUrlController.text,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.broken_image,
+                                    size: 50,
+                                    color: Colors.grey[400],
+                                  ),
+                                  SizedBox(height: 10),
+                                  Text(
+                                    'Invalid image URL',
+                                    style: TextStyle(color: Colors.grey[500]),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      )
+                    : Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.add_photo_alternate,
+                              size: 50,
+                              color: Colors.grey[400],
+                            ),
+                            SizedBox(height: 10),
+                            Text(
+                              'Tap to add an image',
+                              style: TextStyle(color: Colors.grey[500]),
+                            ),
+                          ],
+                        ),
+                      ),
           ),
+        ),
+        SizedBox(height: 8),
+        if (_imageFile != null)
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Image selected',
+                  style: TextStyle(
+                    color: Colors.green,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    _imageFile = null;
+                  });
+                },
+                child: Text('Clear'),
+              ),
+            ],
+          ),
+        SizedBox(height: 8),
+        Text(
+          'OR',
+          style: TextStyle(
+            color: Colors.grey[600],
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        SizedBox(height: 8),
+        TextFormField(
+          controller: _imageUrlController,
+          decoration: InputDecoration(
+            labelText: 'Image URL',
+            border: OutlineInputBorder(),
+            prefixIcon: Icon(Icons.link),
+          ),
+          onChanged: (_) {
+            if (_imageFile != null) {
+              setState(() {
+                _imageFile = null;
+              });
+            } else {
+              setState(() {});
+            }
+          },
         ),
       ],
     );
   }
 
-  void _addDecorItem() async {
-    if (_formKey.currentState!.validate()) {
-      final provider = Provider.of<DecorProvider>(context, listen: false);
-      
-      final newItem = DecorItemModel(
-        title: _titleController.text,
-        description: _descriptionController.text,
-        category: _selectedCategory,
-        room: _selectedRoom,
-        imageUrl: _imageUrlController.text.isEmpty
-            ? Constants.placeholderImage
-            : _imageUrlController.text,
-        price: double.parse(_priceController.text),
-        rating: _rating,
+  Future<void> _pickImage() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? pickedFile = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
       );
       
-      await provider.addDecorItem(newItem);
-      
+      if (pickedFile != null) {
+        setState(() {
+          _imageFile = File(pickedFile.path);
+          // Clear URL field since we're using a local image
+          _imageUrlController.clear();
+        });
+      }
+    } catch (e) {
+      print('Error picking image: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Item added successfully!'),
-          backgroundColor: Constants.lightAccent,
+          content: Text('Error selecting image'),
+          backgroundColor: Colors.red,
         ),
       );
+    }
+  }
+
+  void _addDecorItem() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isUploading = true;
+      });
       
-      Navigator.pop(context);
+      try {
+        final provider = Provider.of<DecorProvider>(context, listen: false);
+        
+        // Handle image upload if an image file is selected
+        String? imageUrl = _imageUrlController.text;
+        
+        if (_imageFile != null) {
+          final storageService = StorageService();
+          final uploadedUrl = await storageService.uploadImage(
+            _imageFile!,
+            'decor_item_images',
+          );
+          
+          if (uploadedUrl != null) {
+            imageUrl = uploadedUrl;
+          }
+        }
+        
+        final newItem = DecorItemModel(
+          title: _titleController.text,
+          description: _descriptionController.text,
+          category: _selectedCategory,
+          room: _selectedRoom,
+          imageUrl: imageUrl.isEmpty ? Constants.placeholderImage : imageUrl,
+          price: double.parse(_priceController.text),
+          rating: _rating,
+        );
+        
+        await provider.addDecorItem(newItem);
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Decor item added successfully!'),
+            backgroundColor: Constants.lightAccent,
+          ),
+        );
+        
+        Navigator.pop(context);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error adding decor item: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } finally {
+        setState(() {
+          _isUploading = false;
+        });
+      }
     }
   }
 } 

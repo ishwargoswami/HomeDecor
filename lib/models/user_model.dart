@@ -28,4 +28,11 @@ class UserModel {
       'photoUrl': photoUrl,
     };
   }
+  
+  Map<String, dynamic> toJson() => toMap();
+  
+  @override
+  String toString() {
+    return 'UserModel(uid: $uid, email: $email, name: $name, photoUrl: $photoUrl)';
+  }
 } 

@@ -3,6 +3,9 @@ import 'package:flutter_foodybite/models/project_model.dart';
 import 'package:flutter_foodybite/services/decor_provider.dart';
 import 'package:flutter_foodybite/util/const.dart';
 import 'package:provider/provider.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'package:flutter_foodybite/services/storage_service.dart';
 
 class AddProjectScreen extends StatefulWidget {
   @override
@@ -66,6 +69,9 @@ class _AddProjectScreenState extends State<AddProjectScreen> {
     "Garden Beds"
   ];
   
+  File? _imageFile;
+  bool _isUploading = false;
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -180,20 +186,8 @@ class _AddProjectScreenState extends State<AddProjectScreen> {
               ),
               SizedBox(height: 16),
               
-              // Image URL
-              TextFormField(
-                controller: _imageUrlController,
-                decoration: InputDecoration(
-                  labelText: 'Image URL',
-                  border: OutlineInputBorder(),
-                  helperText: 'Leave empty to use a placeholder image',
-                ),
-              ),
-              SizedBox(height: 24),
-              
               // Image Preview
-              if (_imageUrlController.text.isNotEmpty)
-                _buildImagePreview(),
+              _buildImagePreview(),
               SizedBox(height: 24),
               
               // Items Selection
@@ -292,74 +286,210 @@ class _AddProjectScreenState extends State<AddProjectScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle("Image Preview"),
-        SizedBox(height: 8.0),
-        Container(
-          height: 200,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey),
-            borderRadius: BorderRadius.circular(8.0),
+        Text(
+          'Project Image',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8.0),
-            child: Image.network(
-              _imageUrlController.text,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.error_outline,
-                        color: Colors.red,
-                        size: 32.0,
-                      ),
-                      SizedBox(height: 8.0),
-                      Text(
-                        "Invalid image URL",
-                        style: TextStyle(color: Colors.red),
-                      ),
-                    ],
-                  ),
-                );
-              },
+        ),
+        SizedBox(height: 12),
+        GestureDetector(
+          onTap: _pickImage,
+          child: Container(
+            height: 200,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey[300]!),
             ),
+            child: _imageFile != null
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.file(
+                      _imageFile!,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                : _imageUrlController.text.isNotEmpty
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          _imageUrlController.text,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.broken_image,
+                                    size: 50,
+                                    color: Colors.grey[400],
+                                  ),
+                                  SizedBox(height: 10),
+                                  Text(
+                                    'Invalid image URL',
+                                    style: TextStyle(color: Colors.grey[500]),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      )
+                    : Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.add_photo_alternate,
+                              size: 50,
+                              color: Colors.grey[400],
+                            ),
+                            SizedBox(height: 10),
+                            Text(
+                              'Tap to add an image',
+                              style: TextStyle(color: Colors.grey[500]),
+                            ),
+                          ],
+                        ),
+                      ),
           ),
+        ),
+        SizedBox(height: 8),
+        if (_imageFile != null)
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Image selected',
+                  style: TextStyle(
+                    color: Colors.green,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    _imageFile = null;
+                  });
+                },
+                child: Text('Clear'),
+              ),
+            ],
+          ),
+        SizedBox(height: 8),
+        Text(
+          'OR',
+          style: TextStyle(
+            color: Colors.grey[600],
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        SizedBox(height: 8),
+        TextFormField(
+          controller: _imageUrlController,
+          decoration: InputDecoration(
+            labelText: 'Image URL',
+            border: OutlineInputBorder(),
+            prefixIcon: Icon(Icons.link),
+          ),
+          onChanged: (_) {
+            // Force update to show the image preview
+            setState(() {});
+          },
         ),
       ],
     );
   }
 
-  void _createProject() async {
-    if (_formKey.currentState!.validate()) {
-      final provider = Provider.of<DecorProvider>(context, listen: false);
-      
-      final newProject = ProjectModel(
-        name: _nameController.text,
-        description: _descriptionController.text,
-        room: _selectedRoom,
-        imageUrl: _imageUrlController.text.isEmpty
-            ? Constants.placeholderImage
-            : _imageUrlController.text,
-        progress: _progress,
-        items: _selectedItems,
-        budget: _budgetController.text.isEmpty
-            ? 0.0
-            : double.parse(_budgetController.text),
+  Future<void> _pickImage() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? pickedFile = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
       );
       
-      await provider.addProject(newProject);
-      
+      if (pickedFile != null) {
+        setState(() {
+          _imageFile = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      print('Error picking image: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Project created successfully!'),
-          backgroundColor: Constants.lightAccent,
+          content: Text('Error selecting image'),
+          backgroundColor: Colors.red,
         ),
       );
+    }
+  }
+
+  void _createProject() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isUploading = true;
+      });
       
-      Navigator.pop(context);
+      try {
+        final provider = Provider.of<DecorProvider>(context, listen: false);
+        
+        // Handle image upload if an image file is selected
+        String? imageUrl = _imageUrlController.text;
+        
+        if (_imageFile != null) {
+          final storageService = StorageService();
+          final uploadedUrl = await storageService.uploadImage(
+            _imageFile!,
+            'project_images',
+          );
+          
+          if (uploadedUrl != null) {
+            imageUrl = uploadedUrl;
+          }
+        }
+        
+        final newProject = ProjectModel(
+          name: _nameController.text,
+          description: _descriptionController.text,
+          room: _selectedRoom,
+          imageUrl: imageUrl.isEmpty ? Constants.placeholderImage : imageUrl,
+          progress: _progress,
+          items: _selectedItems,
+          budget: _budgetController.text.isEmpty
+              ? 0.0
+              : double.parse(_budgetController.text),
+        );
+        
+        await provider.addProject(newProject);
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Project created successfully!'),
+            backgroundColor: Constants.lightAccent,
+          ),
+        );
+        
+        Navigator.pop(context);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error creating project: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } finally {
+        setState(() {
+          _isUploading = false;
+        });
+      }
     }
   }
 } 

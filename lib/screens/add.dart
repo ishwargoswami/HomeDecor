@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_foodybite/util/categories.dart';
 
 class Add extends StatefulWidget {
   @override
@@ -7,138 +6,103 @@ class Add extends StatefulWidget {
 }
 
 class _AddState extends State<Add> {
-  final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  String _selectedRoom = 'Living Room';
-  double _progress = 0.0;
-  
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _descriptionController.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: Text('Create New Project'),
-        elevation: 0.0,
+        title: Text('What would you like to add?'),
+        elevation: 0,
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
+      body: Center(
+        child: Container(
+          padding: EdgeInsets.all(24.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Project Name
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: 'Project Name',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a project name';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 16),
-              
-              // Description
-              TextFormField(
-                controller: _descriptionController,
-                decoration: InputDecoration(
-                  labelText: 'Description',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 3,
-              ),
-              SizedBox(height: 16),
-              
-              // Room Type Dropdown
-              Text(
-                'Room Type',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                ),
-                value: _selectedRoom,
-                items: categories.map<DropdownMenuItem<String>>((category) {
-                  return DropdownMenuItem<String>(
-                    value: category['name'],
-                    child: Text(category['name']),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedRoom = value!;
-                  });
-                },
-              ),
-              SizedBox(height: 16),
-              
-              // Progress Slider
-              Text(
-                'Progress: ${(_progress * 100).toInt()}%',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Slider(
-                value: _progress,
-                onChanged: (value) {
-                  setState(() {
-                    _progress = value;
-                  });
-                },
-                activeColor: Theme.of(context).colorScheme.secondary,
+              _buildOptionCard(
+                context,
+                title: 'Create Project',
+                description: 'Start a new home decoration project',
+                icon: Icons.apartment,
+                color: Colors.blue,
+                onTap: () => Navigator.pushNamed(context, '/add_project'),
               ),
               SizedBox(height: 24),
-              
-              // Submit Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      // Save project logic would go here
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Project created successfully!'),
-                          backgroundColor: Theme.of(context).colorScheme.secondary,
-                        ),
-                      );
-                      Navigator.pop(context);
-                    }
-                  },
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16.0),
-                    child: Text(
-                      'CREATE PROJECT',
+              _buildOptionCard(
+                context,
+                title: 'Add Decor Item',
+                description: 'Add a new item to your decor catalog',
+                icon: Icons.chair,
+                color: Colors.orange,
+                onTap: () => Navigator.pushNamed(context, '/add_decor_item'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOptionCard(
+    BuildContext context, {
+    required String title,
+    required String description,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  icon,
+                  size: 36,
+                  color: color,
+                ),
+              ),
+              SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.secondary,
-                    foregroundColor: Colors.white,
-                  ),
+                    SizedBox(height: 4),
+                    Text(
+                      description,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
                 ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios,
+                color: Colors.grey[400],
+                size: 16,
               ),
             ],
           ),

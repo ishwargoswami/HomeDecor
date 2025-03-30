@@ -58,6 +58,11 @@ class AuthService {
       // Update the username
       await user?.updateDisplayName(name);
       
+      // Reload the user to ensure updated profile data is available
+      await user?.reload();
+      // Get the fresh user data
+      user = _auth.currentUser;
+      
       // Create a new document for the user with uid
       await _firestore.collection('users').doc(user?.uid).set({
         'uid': user?.uid,
@@ -169,14 +174,44 @@ class AuthService {
 
   // Save user session
   Future<void> _saveUserSession(bool isLoggedIn) async {
+    print("Saving user session. isLoggedIn: $isLoggedIn");
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isLoggedIn', isLoggedIn);
+    
+    // Also save user ID for persistence
+    if (isLoggedIn && _auth.currentUser != null) {
+      await prefs.setString('userId', _auth.currentUser!.uid);
+      print("Saved user ID: ${_auth.currentUser!.uid}");
+    } else if (!isLoggedIn) {
+      await prefs.remove('userId');
+      print("Removed user ID from preferences");
+    }
   }
 
   // Check if user is logged in
   Future<bool> isUserLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool('isLoggedIn') ?? false;
+    final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    final userId = prefs.getString('userId');
+    
+    // Double check with Firebase auth
+    final currentUser = _auth.currentUser;
+    
+    print("SharedPrefs logged in: $isLoggedIn");
+    print("SharedPrefs userId: $userId");
+    print("Firebase currentUser: ${currentUser?.uid}");
+    
+    // Only consider logged in if both SharedPreferences and Firebase Auth agree
+    if (isLoggedIn && currentUser != null) {
+      return true;
+    } else if (isLoggedIn && currentUser == null && userId != null) {
+      // Inconsistent state - SharedPrefs says logged in but Firebase doesn't have user
+      // This can happen if the Firebase auth state was cleared but SharedPrefs wasn't
+      await _saveUserSession(false);
+      return false;
+    }
+    
+    return false;
   }
 
   // Sign out
