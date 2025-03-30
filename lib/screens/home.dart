@@ -593,8 +593,17 @@ class _HomeState extends State<Home> {
               flex: 3,
               child: ClipRRect(
                 borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-                child: Image.network(
-                  item.imageUrl ?? "",
+                child: item.imageUrl == null || item.imageUrl!.isEmpty
+                ? Container(
+                    color: Colors.grey[200],
+                    child: Icon(
+                      Icons.image_not_supported,
+                      color: Colors.grey[400],
+                      size: 40,
+                    ),
+                  )
+                : Image.network(
+                  item.imageUrl!,
                   fit: BoxFit.cover,
                   width: double.infinity,
                   loadingBuilder: (context, child, loadingProgress) {

@@ -145,4 +145,32 @@ class AuthProvider extends ChangeNotifier {
     _error = '';
     notifyListeners();
   }
+  
+  // Update user profile image
+  Future<bool> updateProfileImage(String uid, String imageUrl) async {
+    _setLoading(true);
+    _clearError();
+    
+    try {
+      // Update Firestore document
+      await _authService.updateUserProfileImage(uid, imageUrl);
+      
+      // Update local user object if it exists
+      if (_user != null && _user!.uid == uid) {
+        _user = UserModel(
+          uid: _user!.uid,
+          email: _user!.email,
+          name: _user!.name,
+          photoUrl: imageUrl,
+        );
+      }
+      
+      _setLoading(false);
+      return true;
+    } catch (e) {
+      _setError(e.toString());
+      _setLoading(false);
+      return false;
+    }
+  }
 } 

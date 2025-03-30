@@ -65,6 +65,8 @@ class SearchCard extends StatelessWidget {
           maxLines: 1,
           controller: _searchControl,
           onChanged: onChanged,
+          textInputAction: TextInputAction.search,
+          onSubmitted: onChanged,
         ),
       ),
     );

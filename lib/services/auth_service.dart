@@ -236,4 +236,23 @@ class AuthService {
       throw e;
     }
   }
+
+  // Update user profile image
+  Future<void> updateUserProfileImage(String uid, String imageUrl) async {
+    try {
+      // Update Firestore document
+      await _firestore.collection('users').doc(uid).update({
+        'photoUrl': imageUrl,
+      });
+      
+      // If this is the current user, update auth profile
+      User? currentUser = _auth.currentUser;
+      if (currentUser != null && currentUser.uid == uid) {
+        await currentUser.updatePhotoURL(imageUrl);
+      }
+    } catch (e) {
+      print('Error updating profile image: ${e.toString()}');
+      throw e;
+    }
+  }
 } 
