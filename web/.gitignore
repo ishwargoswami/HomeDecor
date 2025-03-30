@@ -1,0 +1,13 @@
+# Web related
+lib/
+generated_plugin_registrant.dart
+# Omit committing dart tools and build runner outputs
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+# symbolication related
+app.*.symbols
+# Obfuscation related
+app.*.map.json 
