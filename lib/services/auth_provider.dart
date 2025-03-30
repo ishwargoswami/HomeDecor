@@ -102,7 +102,34 @@ class AuthProvider extends ChangeNotifier {
 
   // Set error
   void _setError(String error) {
-    _error = error;
+    // Format Firebase error messages to be more user-friendly
+    if (error.contains('user-not-found')) {
+      _error = 'No user found with this email address.';
+    } else if (error.contains('wrong-password')) {
+      _error = 'Incorrect password. Please try again.';
+    } else if (error.contains('email-already-in-use')) {
+      _error = 'This email is already registered. Try logging in instead.';
+    } else if (error.contains('weak-password')) {
+      _error = 'Password is too weak. Use a stronger password.';
+    } else if (error.contains('invalid-email')) {
+      _error = 'The email address is invalid.';
+    } else if (error.contains('network-request-failed')) {
+      _error = 'Network error. Check your internet connection.';
+    } else if (error.contains('too-many-requests')) {
+      _error = 'Too many failed login attempts. Try again later.';
+    } else if (error.contains('Google Sign In canceled')) {
+      _error = 'Google Sign In was canceled.';
+    } else {
+      // Keep only the relevant part of the error message
+      final RegExp regExp = RegExp(r'\[(.*?)\] (.*)');
+      final match = regExp.firstMatch(error);
+      if (match != null && match.groupCount >= 2) {
+        _error = match.group(2) ?? error;
+      } else {
+        _error = error;
+      }
+    }
+    
     notifyListeners();
   }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_foodybite/models/user_model.dart';
 import 'package:flutter_foodybite/screens/login_screen.dart';
 import 'package:flutter_foodybite/services/auth_provider.dart';
+import 'package:flutter_foodybite/services/theme_provider.dart';
 import 'package:provider/provider.dart';
 
 class Profile extends StatelessWidget {
@@ -107,10 +108,16 @@ class Profile extends StatelessWidget {
   }
 
   Widget _buildProfileOptions(BuildContext context, AuthProvider authProvider) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         children: [
+          // Theme toggle option
+          _buildThemeToggle(context, themeProvider),
+          _buildDivider(),
+          
           _buildOptionTile(
             context,
             icon: Icons.favorite_border,
@@ -192,6 +199,27 @@ class Profile extends StatelessWidget {
           SizedBox(height: 30),
         ],
       ),
+    );
+  }
+
+  Widget _buildThemeToggle(BuildContext context, ThemeProvider themeProvider) {
+    return SwitchListTile(
+      title: Text(
+        "Dark Mode",
+        style: TextStyle(
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      secondary: Icon(
+        themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+        color: Theme.of(context).colorScheme.secondary,
+      ),
+      value: themeProvider.isDarkMode,
+      activeColor: Theme.of(context).colorScheme.secondary,
+      onChanged: (value) {
+        themeProvider.toggleTheme();
+      },
+      contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 0),
     );
   }
 

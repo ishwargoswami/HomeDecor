@@ -2,6 +2,13 @@ import 'package:flutter/material.dart';
 
 class SearchCard extends StatelessWidget {
   final TextEditingController _searchControl = new TextEditingController();
+  final String hintText;
+  final Function(String)? onChanged;
+
+  SearchCard({
+    this.hintText = "Search..",
+    this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -33,14 +40,22 @@ class SearchCard extends StatelessWidget {
               ),
               borderRadius: BorderRadius.circular(5.0),
             ),
-            hintText: "Search..",
+            hintText: hintText,
             prefixIcon: Icon(
               Icons.search,
               color: Colors.black,
             ),
-            suffixIcon: Icon(
-              Icons.filter_list,
-              color: Colors.black,
+            suffixIcon: IconButton(
+              icon: Icon(
+                Icons.clear,
+                color: Colors.black54,
+              ),
+              onPressed: () {
+                _searchControl.clear();
+                if (onChanged != null) {
+                  onChanged!('');
+                }
+              },
             ),
             hintStyle: TextStyle(
               fontSize: 15.0,
@@ -49,6 +64,7 @@ class SearchCard extends StatelessWidget {
           ),
           maxLines: 1,
           controller: _searchControl,
+          onChanged: onChanged,
         ),
       ),
     );

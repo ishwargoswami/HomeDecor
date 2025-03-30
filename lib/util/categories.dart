@@ -2,33 +2,33 @@ import 'package:flutter/material.dart';
 
 List categories = [
   {
-    "name": "Italian",
+    "name": "Living Room",
     "color1": Color.fromARGB(100, 0, 0, 0),
     "color2": Color.fromARGB(100, 0, 0, 0),
-    "img": "assets/food1.jpeg"
+    "img": "https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg"
   },
   {
-    "name": "Chinese",
+    "name": "Bedroom",
     "color1": Color.fromARGB(100, 0, 0, 0),
     "color2": Color.fromARGB(100, 0, 0, 0),
-    "img": "assets/food2.jpeg"
+    "img": "https://images.pexels.com/photos/1743229/pexels-photo-1743229.jpeg"
   },
   {
-    "name": "Nigerian",
+    "name": "Kitchen",
     "color1": Color.fromARGB(100, 0, 0, 0),
     "color2": Color.fromARGB(100, 0, 0, 0),
-    "img": "assets/food3.jpeg"
+    "img": "https://images.pexels.com/photos/1080721/pexels-photo-1080721.jpeg"
   },
   {
-    "name": "Spanish",
+    "name": "Bathroom",
     "color1": Color.fromARGB(100, 0, 0, 0),
     "color2": Color.fromARGB(100, 0, 0, 0),
-    "img": "assets/food4.jpeg"
+    "img": "https://images.pexels.com/photos/6316065/pexels-photo-6316065.jpeg"
   },
   {
-    "name": "Mexican",
+    "name": "Office",
     "color1": Color.fromARGB(100, 0, 0, 0),
     "color2": Color.fromARGB(100, 0, 0, 0),
-    "img": "assets/food5.jpeg"
+    "img": "https://images.pexels.com/photos/1957478/pexels-photo-1957478.jpeg"
   },
 ];

@@ -13,11 +13,23 @@ class CategoryItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(8.0),
         child: Stack(
           children: <Widget>[
-            Image.asset(
+            Image.network(
               cat["img"],
-              height: MediaQuery.of(context).size.height / 6,
-              width: MediaQuery.of(context).size.height / 6,
+              height: 100,
+              width: 100,
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  height: 100,
+                  width: 100,
+                  color: Colors.grey[300],
+                  child: Icon(
+                    Icons.image_not_supported,
+                    color: Colors.grey[600],
+                    size: 40,
+                  ),
+                );
+              },
             ),
             Container(
               decoration: BoxDecoration(
@@ -33,13 +45,13 @@ class CategoryItem extends StatelessWidget {
                   // stops: [0.0, 0.1],
                 ),
               ),
-              height: MediaQuery.of(context).size.height / 6,
-              width: MediaQuery.of(context).size.height / 6,
+              height: 100,
+              width: 100,
             ),
             Center(
               child: Container(
-                height: MediaQuery.of(context).size.height / 6,
-                width: MediaQuery.of(context).size.height / 6,
+                height: 100,
+                width: 100,
                 padding: const EdgeInsets.all(1),
                 constraints: BoxConstraints(
                   minWidth: 20,
@@ -50,7 +62,7 @@ class CategoryItem extends StatelessWidget {
                     cat["name"],
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 20,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                     textAlign: TextAlign.center,

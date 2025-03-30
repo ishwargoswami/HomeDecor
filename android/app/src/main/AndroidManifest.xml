@@ -1,5 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.jideguru.flutter_foodybite">
+    <!-- Add internet permission for network operations including Google Sign-In -->
+    <uses-permission android:name="android.permission.INTERNET"/>
    <application
         android:label="flutter_foodybite"
         android:name="${applicationName}"

@@ -3,6 +3,8 @@ import 'package:flutter_foodybite/screens/add.dart';
 import 'package:flutter_foodybite/screens/home.dart';
 import 'package:flutter_foodybite/screens/label.dart';
 import 'package:flutter_foodybite/screens/profile.dart';
+import 'package:flutter_foodybite/screens/projects.dart';
+import 'package:flutter_foodybite/screens/inspiration.dart';
 
 import 'notifications.dart';
 
@@ -15,19 +17,27 @@ class _MainScreenState extends State<MainScreen> {
   late PageController _pageController;
   int _page = 0;
 
-  List icons = [
-    Icons.home,
-    Icons.label,
+  final List<IconData> icons = [
+    Icons.home_rounded,
+    Icons.view_module_rounded,
     Icons.add,
-    Icons.notifications,
-    Icons.person,
+    Icons.lightbulb_outline,
+    Icons.person_outline,
   ];
 
-  List pages = [
+  final List<String> labels = [
+    "Home",
+    "Projects",
+    "Add",
+    "Inspiration",
+    "Profile"
+  ];
+
+  List<Widget> pages = [
     Home(),
-    Label(),
+    Projects(),
     Add(),
-    Notifications(),
+    Inspiration(),
     Profile(),
   ];
 
@@ -38,39 +48,51 @@ class _MainScreenState extends State<MainScreen> {
         physics: NeverScrollableScrollPhysics(),
         controller: _pageController,
         onPageChanged: onPageChanged,
-        children: List.generate(5, (index) =>  pages[index] ),
+        children: List.generate(5, (index) => pages[index]),
       ),
-      bottomNavigationBar: BottomAppBar(
-        child: Row(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: <Widget>[
-            // SizedBox(width: 7),
-            buildTabIcon(0),
-            buildTabIcon(1),
-            buildTabIcon(3),
-            buildTabIcon(4),
-            // SizedBox(width: 7),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: Offset(0, -5),
+            ),
           ],
         ),
-        color: Theme.of(context).primaryColor,
-        shape: CircularNotchedRectangle(),
+        child: BottomAppBar(
+          elevation: 0,
+          notchMargin: 10,
+          shape: CircularNotchedRectangle(),
+          color: Colors.white,
+          child: Container(
+            height: 60,
+            padding: EdgeInsets.symmetric(horizontal: 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: <Widget>[
+                buildNavItem(0),
+                buildNavItem(1),
+                SizedBox(width: 40), // Space for FAB
+                buildNavItem(3),
+                buildNavItem(4),
+              ],
+            ),
+          ),
+        ),
       ),
-      floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(
-        elevation: 10.0,
+        backgroundColor: Theme.of(context).colorScheme.secondary,
+        elevation: 8.0,
         child: Icon(
           Icons.add,
+          color: Colors.white,
         ),
         onPressed: () => _pageController.jumpToPage(2),
       ),
     );
   }
-
- // void navigationTapped(int page) {
- //    _pageController.jumpToPage(page);
- //  }
 
   @override
   void initState() {
@@ -90,19 +112,33 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
-  buildTabIcon(int index) {
-      return Container(
-        margin: EdgeInsets.fromLTRB( index == 3 ? 30 : 0, 0,  index == 1 ? 30 : 0, 0),
-        child: IconButton(
-          icon: Icon(
+  Widget buildNavItem(int index) {
+    bool isSelected = _page == index;
+    return InkWell(
+      onTap: () => _pageController.jumpToPage(index),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
             icons[index],
-            size: 24.0,
+            size: 24,
+            color: isSelected 
+                ? Theme.of(context).colorScheme.secondary 
+                : Colors.grey[400],
           ),
-          color: _page == index
-              ? Theme.of(context).colorScheme.secondary
-              : Theme.of(context).textTheme.bodySmall?.color,
-          onPressed: () => _pageController.jumpToPage(index),
-        ),
-      );
+          SizedBox(height: 4),
+          Text(
+            labels[index],
+            style: TextStyle(
+              fontSize: 12,
+              color: isSelected 
+                  ? Theme.of(context).colorScheme.secondary 
+                  : Colors.grey[400],
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

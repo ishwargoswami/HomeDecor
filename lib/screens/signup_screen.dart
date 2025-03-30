@@ -53,8 +53,11 @@ class _SignupScreenState extends State<SignupScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(authProvider.error),
-            backgroundColor: Colors.red,
+            content: Text(
+              authProvider.error,
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+            backgroundColor: Constants.errorColor,
           ),
         );
       }
@@ -71,8 +74,11 @@ class _SignupScreenState extends State<SignupScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(authProvider.error),
-          backgroundColor: Colors.red,
+          content: Text(
+            authProvider.error,
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          backgroundColor: Constants.errorColor,
         ),
       );
     }
@@ -245,7 +251,8 @@ class _SignupScreenState extends State<SignupScreen> {
                     onPressed: authProvider.isLoading ? null : _submitForm,
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 12),
-                      backgroundColor: Theme.of(context).colorScheme.secondary,
+                      backgroundColor: Constants.lightAccent,
+                      foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -257,6 +264,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
                           ),
                   ),
@@ -276,17 +284,51 @@ class _SignupScreenState extends State<SignupScreen> {
                   SizedBox(height: 16),
                   
                   // Google sign up button
-                  OutlinedButton.icon(
-                    onPressed: authProvider.isLoading ? null : _signInWithGoogle,
-                    icon: Image.network(
-                      "https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg",
-                      height: 24,
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.2),
+                          spreadRadius: 1,
+                          blurRadius: 2,
+                          offset: Offset(0, 1),
+                        ),
+                      ],
                     ),
-                    label: Text("Sign up with Google"),
-                    style: OutlinedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                    child: OutlinedButton.icon(
+                      onPressed: authProvider.isLoading ? null : _signInWithGoogle,
+                      icon: Container(
+                        height: 24,
+                        width: 24,
+                        child: Image.network(
+                          'https://www.freepnglogos.com/uploads/google-logo-png/google-logo-png-suite-everything-you-need-know-about-google-newest-0.png',
+                          height: 24,
+                          width: 24,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Icon(
+                              Icons.g_mobiledata,
+                              color: Colors.red,
+                              size: 24,
+                            );
+                          },
+                        ),
+                      ),
+                      label: Text(
+                        "Sign up with Google",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        side: BorderSide(color: Colors.grey.shade300),
+                        backgroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                     ),
                   ),
@@ -296,10 +338,19 @@ class _SignupScreenState extends State<SignupScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text("Already have an account?"),
+                      Text(
+                        "Already have an account?",
+                        style: TextStyle(color: Colors.black87),
+                      ),
                       TextButton(
                         onPressed: () => Navigator.pop(context),
-                        child: Text("Log In"),
+                        child: Text(
+                          "Log In",
+                          style: TextStyle(
+                            color: Constants.lightAccent,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ],
                   ),

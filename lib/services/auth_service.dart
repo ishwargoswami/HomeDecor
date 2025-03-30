@@ -8,7 +8,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: ['email', 'profile'],
+    clientId: '16247673730-n0b42cctdqti1adfgph33dinbh4mkkbk.apps.googleusercontent.com',
+  );
 
   // Create user object based on FirebaseUser
   UserModel? _userFromFirebaseUser(User? user) {
@@ -39,8 +42,8 @@ class AuthService {
       
       return _userFromFirebaseUser(user);
     } catch (e) {
-      print(e.toString());
-      return null;
+      print('Error in signInWithEmailAndPassword: ${e.toString()}');
+      throw e;
     }
   }
 
@@ -69,8 +72,8 @@ class AuthService {
       
       return _userFromFirebaseUser(user);
     } catch (e) {
-      print(e.toString());
-      return null;
+      print('Error in registerWithEmailAndPassword: ${e.toString()}');
+      throw e;
     }
   }
 
@@ -81,23 +84,30 @@ class AuthService {
       if (kIsWeb) {
         // Create a new provider
         GoogleAuthProvider googleProvider = GoogleAuthProvider();
+        googleProvider.addScope('email');
+        googleProvider.addScope('profile');
         
-        // Add scopes if needed
-        googleProvider.addScope('https://www.googleapis.com/auth/contacts.readonly');
-        googleProvider.setCustomParameters({
-          'login_hint': 'user@example.com'
-        });
-
         // Sign in using a popup
         final UserCredential result = await _auth.signInWithPopup(googleProvider);
         final User? user = result.user;
 
-        _handleSignedInUser(user);
+        await _handleSignedInUser(user);
         return _userFromFirebaseUser(user);
       } else {
         // For Android/iOS flow
-        final GoogleSignInAccount? googleSignInAccount = await _googleSignIn.signIn();
-        if (googleSignInAccount != null) {
+        // Show loading indicator or disable buttons before starting sign-in
+        try {
+          print("Starting Google Sign In process...");
+          // Begin interactive sign-in process
+          final GoogleSignInAccount? googleSignInAccount = await _googleSignIn.signIn();
+          
+          if (googleSignInAccount == null) {
+            print("Google Sign In was canceled by user");
+            throw Exception("Google Sign In was canceled by user");
+          }
+          
+          print("Google Sign In success, getting credentials...");
+          // Show loading indicator during authentication
           final GoogleSignInAuthentication googleSignInAuthentication =
               await googleSignInAccount.authentication;
 
@@ -106,17 +116,32 @@ class AuthService {
             idToken: googleSignInAuthentication.idToken,
           );
 
-          final UserCredential result = await _auth.signInWithCredential(credential);
-          final User? user = result.user;
+          try {
+            print("Signing in to Firebase with Google credential...");
+            final UserCredential result = await _auth.signInWithCredential(credential);
+            final User? user = result.user;
 
-          _handleSignedInUser(user);
-          return _userFromFirebaseUser(user);
+            print("Firebase sign in successful, handling user data...");
+            await _handleSignedInUser(user);
+            return _userFromFirebaseUser(user);
+          } catch (credentialError) {
+            print('Credential error: $credentialError');
+            throw Exception("Failed to sign in with Google. Please try again.");
+          }
+        } catch (error) {
+          print('Google sign in error: $error');
+          if (error.toString().contains('network_error')) {
+            throw Exception("Network error. Check your connection.");
+          } else if (error.toString().contains('canceled')) {
+            throw Exception("Google Sign In was canceled.");
+          } else {
+            throw error;
+          }
         }
       }
-      return null;
     } catch (e) {
-      print(e.toString());
-      return null;
+      print('Error in signInWithGoogle: ${e.toString()}');
+      throw e;
     }
   }
 
