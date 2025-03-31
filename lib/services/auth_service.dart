@@ -217,13 +217,44 @@ class AuthService {
   // Sign out
   Future<void> signOut() async {
     try {
-      await _googleSignIn.signOut();
+      print("Starting user sign out process...");
+      
+      // Step 1: Clear all shared preferences first
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+      
+      // Step 2: Explicitly set logged out state
+      await prefs.setBool('isLoggedIn', false);
+      await prefs.remove('userId');
+      
+      // Step 3: Try to sign out from Google if applicable
+      try {
+        await _googleSignIn.signOut();
+        print("Successfully signed out from Google");
+      } catch (e) {
+        // Non-critical, just log it
+        print("Google sign out error (non-critical): $e");
+      }
+      
+      // Step 4: Sign out from Firebase Auth
       await _auth.signOut();
       
-      // Clear user session
-      await _saveUserSession(false);
+      print("User signed out successfully");
     } catch (e) {
-      print(e.toString());
+      print("Error during sign out: $e");
+      
+      // Even if sign out fails, make sure local storage is cleared
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.clear();
+        await prefs.setBool('isLoggedIn', false);
+        await prefs.remove('userId');
+      } catch (e2) {
+        print("Error clearing preferences: $e2");
+      }
+      
+      // Rethrow the error for upstream handling
+      throw e;
     }
   }
 
@@ -272,6 +303,52 @@ class AuthService {
     } catch (e) {
       print('Error updating user name: ${e.toString()}');
       throw e;
+    }
+  }
+
+  // Reauthenticate user (required for sensitive operations like changing password)
+  Future<void> reauthenticateUser(String email, String password) async {
+    try {
+      // Get current user
+      final currentUser = _auth.currentUser;
+      
+      if (currentUser == null) {
+        throw Exception('No user is currently logged in');
+      }
+      
+      // Create credential
+      final credential = EmailAuthProvider.credential(
+        email: email,
+        password: password,
+      );
+      
+      // Reauthenticate
+      await currentUser.reauthenticateWithCredential(credential);
+      print('User reauthenticated successfully');
+    } catch (e) {
+      print('Reauthentication error: $e');
+      if (e.toString().contains('wrong-password')) {
+        throw Exception('Current password is incorrect');
+      } else {
+        throw Exception('Failed to reauthenticate: $e');
+      }
+    }
+  }
+  
+  // Update password
+  Future<void> updatePassword(String newPassword) async {
+    try {
+      final currentUser = _auth.currentUser;
+      
+      if (currentUser == null) {
+        throw Exception('No user is currently logged in');
+      }
+      
+      await currentUser.updatePassword(newPassword);
+      print('Password updated successfully');
+    } catch (e) {
+      print('Password update error: $e');
+      throw Exception('Failed to update password: $e');
     }
   }
 

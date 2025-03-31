@@ -96,9 +96,30 @@ class AuthProvider extends ChangeNotifier {
   // Sign out
   Future<void> signOut() async {
     _setLoading(true);
-    await _authService.signOut();
-    _user = null;
-    _setLoading(false);
+    _clearError();
+    
+    try {
+      print("AuthProvider: Starting sign out process");
+      
+      // First clear our local state before calling the service
+      _user = null;
+      notifyListeners();
+      
+      // Call the auth service to sign out
+      await _authService.signOut();
+      
+      print("AuthProvider: Sign out complete");
+    } catch (e) {
+      print("AuthProvider: Error during sign out: $e");
+      _setError("Failed to sign out: ${e.toString()}");
+      
+      // Even if there's an error, make sure user data is cleared
+      _user = null;
+    } finally {
+      // Always ensure we're not in loading state and UI is updated
+      _setLoading(false);
+      notifyListeners();
+    }
   }
 
   // Set loading state
@@ -199,11 +220,42 @@ class AuthProvider extends ChangeNotifier {
           email: _user!.email,
           name: name,
           photoUrl: _user!.photoUrl,
+          projectsCount: _user!.projectsCount,
+          wishlistCount: _user!.wishlistCount,
+          purchasesCount: _user!.purchasesCount,
         );
         
         // Force refresh of user data stream
         await _authService.refreshUserData(uid);
       }
+      
+      _setLoading(false);
+      return true;
+    } catch (e) {
+      _setError(e.toString());
+      _setLoading(false);
+      return false;
+    }
+  }
+  
+  // Change password
+  Future<bool> changePassword({
+    required String currentPassword, 
+    required String newPassword
+  }) async {
+    _setLoading(true);
+    _clearError();
+    
+    try {
+      if (_user == null || _user!.email == null) {
+        throw Exception('User not authenticated');
+      }
+      
+      // First reauthenticate with current password
+      await _authService.reauthenticateUser(_user!.email!, currentPassword);
+      
+      // Then update the password
+      await _authService.updatePassword(newPassword);
       
       _setLoading(false);
       return true;

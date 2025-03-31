@@ -112,11 +112,7 @@ class AppDrawer extends StatelessWidget {
             ListTile(
               leading: Icon(Icons.exit_to_app),
               title: Text('Sign Out'),
-              onTap: () async {
-                Navigator.pop(context);
-                await authProvider.signOut();
-                Navigator.pushReplacementNamed(context, '/login');
-              },
+              onTap: () => _handleLogout(context, authProvider),
             ),
           if (user == null)
             ListTile(
@@ -130,5 +126,81 @@ class AppDrawer extends StatelessWidget {
         ],
       ),
     );
+  }
+  
+  // Separate method to handle logout flow
+  Future<void> _handleLogout(BuildContext context, AuthProvider authProvider) async {
+    // First close the drawer
+    Navigator.pop(context);
+    
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: Center(
+            child: Container(
+              padding: EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 20),
+                  Text(
+                    "Signing out...",
+                    style: TextStyle(color: Colors.black),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+    
+    try {
+      // Sign out
+      await authProvider.signOut();
+      
+      // Ensure the dialog is closed if still showing
+      if (Navigator.canPop(context)) {
+        Navigator.of(context).pop();
+      }
+      
+      // Navigate to login screen with a clean stack
+      await Future.delayed(Duration(milliseconds: 100)); // Small delay for smoother transition
+      
+      // Use named route navigation to ensure proper stack clearing
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        '/login',
+        (route) => false,
+      );
+    } catch (e) {
+      // Close loading dialog if open
+      if (Navigator.canPop(context)) {
+        Navigator.of(context).pop();
+      }
+      
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error signing out: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      
+      // Still try to navigate to login screen
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        '/login',
+        (route) => false,
+      );
+    }
   }
 } 
