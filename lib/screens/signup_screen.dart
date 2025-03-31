@@ -5,6 +5,7 @@ import 'package:flutter_foodybite/util/const.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class SignupScreen extends StatefulWidget {
   @override
@@ -322,62 +323,64 @@ class _SignupScreenState extends State<SignupScreen> {
                   // Divider
                   Row(
                     children: [
-                      Expanded(child: Divider()),
+                      Expanded(child: Divider(color: Constants.lightAccentColor)),
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 16),
-                        child: Text("OR"),
+                        child: Text(
+                          "OR",
+                          style: TextStyle(color: Constants.darkAccentColor),
+                        ),
                       ),
-                      Expanded(child: Divider()),
+                      Expanded(child: Divider(color: Constants.lightAccentColor)),
                     ],
                   ),
                   SizedBox(height: 16),
                   
-                  // Google sign up button
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.2),
-                          spreadRadius: 1,
-                          blurRadius: 2,
-                          offset: Offset(0, 1),
-                        ),
-                      ],
-                    ),
-                    child: OutlinedButton.icon(
-                      onPressed: authProvider.isLoading ? null : _signInWithGoogle,
-                      icon: Container(
-                        height: 24,
-                        width: 24,
-                        child: Image.network(
-                          'https://www.freepnglogos.com/uploads/google-logo-png/google-logo-png-suite-everything-you-need-know-about-google-newest-0.png',
-                          height: 24,
-                          width: 24,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Icon(
-                              Icons.g_mobiledata,
-                              color: Colors.red,
-                              size: 24,
-                            );
-                          },
-                        ),
-                      ),
-                      label: Text(
-                        "Sign up with Google",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black87,
-                        ),
-                      ),
+                  // Google sign in button
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
                         padding: EdgeInsets.symmetric(vertical: 12),
-                        side: BorderSide(color: Colors.grey.shade300),
-                        backgroundColor: Colors.white,
+                        side: BorderSide(color: Constants.lightAccentColor),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
+                      ),
+                      onPressed: authProvider.isLoading ? null : _signInWithGoogle,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Google "G" icon drawn as text
+                          Container(
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey.shade300),
+                            ),
+                            child: Center(
+                              child: Text(
+                                "G",
+                                style: TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 12),
+                          Text(
+                            "Sign up with Google",
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              color: Constants.darkAccentColor,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -389,16 +392,16 @@ class _SignupScreenState extends State<SignupScreen> {
                     children: [
                       Text(
                         "Already have an account?",
-                        style: TextStyle(color: Colors.black87),
+                        style: TextStyle(color: Constants.darkAccentColor),
                       ),
                       TextButton(
                         onPressed: () => Navigator.pop(context),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Constants.midColor,
+                        ),
                         child: Text(
                           "Log In",
-                          style: TextStyle(
-                            color: Constants.lightAccent,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
                     ],

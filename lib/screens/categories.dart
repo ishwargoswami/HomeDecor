@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_foodybite/util/categories.dart';
 import 'package:flutter_foodybite/widgets/category_item.dart';
+import 'package:flutter_foodybite/util/const.dart';
 
 class Categories extends StatefulWidget {
   @override
@@ -17,85 +18,71 @@ class _CategoriesState extends State<Categories> {
         centerTitle: true,
       ),
       body: Padding(
-        padding: EdgeInsets.all(
-          5.0,
-        ),
-        child: GridView.count(
-          crossAxisCount: 2,
-          children: List.generate(
-            categories.length,
-            (index) {
-              var cat = categories[index];
-              return Container(
-                padding: EdgeInsets.all(8.0),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8.0),
-                  child: Stack(
-                    children: <Widget>[
-                      Image.network(
-                        cat["img"],
-                        height: MediaQuery.of(context).size.height,
-                        width: MediaQuery.of(context).size.height,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          print("Error loading image: $error");
-                          return Container(
-                            height: MediaQuery.of(context).size.height,
-                            width: MediaQuery.of(context).size.height,
-                            color: Colors.grey[300],
-                            child: Icon(
-                              Icons.image_not_supported,
-                              size: 50,
-                              color: Colors.grey[500],
-                            ),
-                          );
-                        },
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            // Add one stop for each color. Stops should increase from 0 to 1
-                            stops: [0.2, 0.7],
-                            colors: [
-                              cat['color1'],
-                              cat['color2'],
-                            ],
-                            // stops: [0.0, 0.1],
-                          ),
-                        ),
-                        height: MediaQuery.of(context).size.height,
-                        width: MediaQuery.of(context).size.height,
-                      ),
-                      Center(
-                        child: Container(
-                          height: MediaQuery.of(context).size.height,
-                          width: MediaQuery.of(context).size.height,
-                          padding: const EdgeInsets.all(1),
-                          // constraints: BoxConstraints(
-                          //   minWidth: 20,
-                          //   minHeight: 20,
-                          // ),
-                          child: Center(
-                            child: Text(
-                              cat["name"],
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
+        padding: EdgeInsets.all(8.0),
+        child: GridView.builder(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 1.0,
+            crossAxisSpacing: 8.0,
+            mainAxisSpacing: 8.0,
           ),
+          itemCount: categories.length,
+          itemBuilder: (context, index) {
+            var cat = categories[index];
+            return Container(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8.0),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: <Widget>[
+                    Image.network(
+                      cat["img"],
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        print("Error loading image: $error");
+                        return Container(
+                          color: Colors.grey[300],
+                          child: Icon(
+                            Icons.image_not_supported,
+                            size: 50,
+                            color: Colors.grey[500],
+                          ),
+                        );
+                      },
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          // Add one stop for each color. Stops should increase from 0 to 1
+                          stops: [0.2, 0.7],
+                          colors: [
+                            cat['color1'],
+                            cat['color2'],
+                          ],
+                        ),
+                      ),
+                    ),
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          cat["name"],
+                          style: TextStyle(
+                            color: Constants.lightestColor,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
       ),
     );

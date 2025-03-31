@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_foodybite/services/decor_provider.dart';
 import 'package:flutter_foodybite/widgets/search_card.dart';
 import 'package:flutter_foodybite/util/categories.dart';
+import 'package:flutter_foodybite/util/const.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:provider/provider.dart';
+import 'package:shimmer/shimmer.dart';
 
 class Inspiration extends StatefulWidget {
   @override
@@ -13,6 +15,7 @@ class Inspiration extends StatefulWidget {
 class _InspirationState extends State<Inspiration> {
   String _selectedCategory = 'All';
   String _searchQuery = '';
+  bool _isLoading = true;
   
   // Sample inspiration images (these could be loaded from a provider in a real app)
   final List<Map<String, dynamic>> _inspirationItems = [
@@ -58,6 +61,19 @@ class _InspirationState extends State<Inspiration> {
     },
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    // Simulate network loading
+    Future.delayed(Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    });
+  }
+
   // Get filtered inspiration items
   List<Map<String, dynamic>> get filteredItems {
     return _inspirationItems.where((item) {
@@ -90,9 +106,11 @@ class _InspirationState extends State<Inspiration> {
             SizedBox(height: 20.0),
             buildCategoryFilters(),
             SizedBox(height: 20.0),
-            filteredItems.isEmpty
-                ? _buildEmptyState()
-                : buildInspirationGrid(context),
+            _isLoading
+                ? _buildGridShimmer()
+                : filteredItems.isEmpty
+                    ? _buildEmptyState()
+                    : buildInspirationGrid(context),
             SizedBox(height: 30.0),
           ],
         ),
@@ -161,11 +179,22 @@ class _InspirationState extends State<Inspiration> {
   }
 
   Widget buildFilterChip(String label) {
+    final isSelected = label == _selectedCategory;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4.0),
       child: FilterChip(
-        label: Text(label),
-        selected: label == _selectedCategory,
+        label: Text(
+          label,
+          style: TextStyle(
+            color: isSelected 
+                ? Constants.lightestColor 
+                : Constants.darkestColor,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+        selected: isSelected,
+        selectedColor: Constants.midColor,
+        backgroundColor: Constants.lightestColor,
         onSelected: (selected) {
           if (selected) {
             setState(() {
@@ -204,14 +233,7 @@ class _InspirationState extends State<Inspiration> {
               fit: BoxFit.cover,
               loadingBuilder: (context, child, loadingProgress) {
                 if (loadingProgress == null) return child;
-                return Center(
-                  child: CircularProgressIndicator(
-                    value: loadingProgress.expectedTotalBytes != null
-                        ? loadingProgress.cumulativeBytesLoaded / 
-                          loadingProgress.expectedTotalBytes!
-                        : null,
-                  ),
-                );
+                return _buildImageShimmer();
               },
               errorBuilder: (context, error, stackTrace) {
                 return Container(
@@ -235,7 +257,7 @@ class _InspirationState extends State<Inspiration> {
                     begin: Alignment.bottomCenter,
                     end: Alignment.topCenter,
                     colors: [
-                      Colors.black.withOpacity(0.7),
+                      Constants.darkestColor.withOpacity(0.8),
                       Colors.transparent,
                     ],
                   ),
@@ -243,7 +265,7 @@ class _InspirationState extends State<Inspiration> {
                 child: Text(
                   item['category'],
                   style: TextStyle(
-                    color: Colors.white,
+                    color: Constants.lightestColor,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -252,6 +274,44 @@ class _InspirationState extends State<Inspiration> {
           ],
         ),
       ),
+    );
+  }
+  
+  // Shimmer loading effect for the images
+  Widget _buildImageShimmer() {
+    return Shimmer.fromColors(
+      baseColor: Constants.lightAccentColor.withOpacity(0.3),
+      highlightColor: Constants.lightestColor,
+      child: Container(
+        color: Colors.white,
+      ),
+    );
+  }
+
+  // Show shimmer loading effect for the grid
+  Widget _buildGridShimmer() {
+    return MasonryGridView.count(
+      crossAxisCount: 2,
+      mainAxisSpacing: 10,
+      crossAxisSpacing: 10,
+      itemCount: 6,
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      itemBuilder: (context, index) {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            height: index % 2 == 0 ? 200 : 250,
+            child: Shimmer.fromColors(
+              baseColor: Constants.lightAccentColor.withOpacity(0.3),
+              highlightColor: Constants.lightestColor,
+              child: Container(
+                color: Colors.white,
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 } 

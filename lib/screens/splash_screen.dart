@@ -115,7 +115,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Constants.darkestColor,
       body: FadeTransition(
         opacity: _exitAnimation,
         child: Container(
@@ -124,9 +124,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Color(0xFF1A1A2E),  // Deep elegant blue
-                Color(0xFF16213E),  // Rich navy
-                Color(0xFF0F3460),  // Deep royal blue
+                Constants.darkestColor,  // Brunswick green (darkest)
+                Constants.darkAccentColor,  // Hunter green (dark accent)
+                Constants.midColor,  // Fern green (mid)
               ],
               stops: [0.2, 0.5, 0.8],
             ),
@@ -165,7 +165,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                                       boxShadow: [
                                         if (isPopping)
                                           BoxShadow(
-                                            color: Colors.white.withOpacity(0.3),
+                                            color: Constants.lightestColor.withOpacity(0.3),
                                             blurRadius: 30,
                                             spreadRadius: 10,
                                           ),
@@ -177,17 +177,17 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                                         width: 120,
                                         height: 120,
                                         decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.1),
+                                          color: Constants.lightAccentColor.withOpacity(0.2),
                                           borderRadius: BorderRadius.circular(30),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.white.withOpacity(0.1),
+                                              color: Constants.lightAccentColor.withOpacity(0.1),
                                               blurRadius: 20,
                                               spreadRadius: 5,
                                             ),
                                           ],
                                           border: Border.all(
-                                            color: Colors.white.withOpacity(0.2),
+                                            color: Constants.lightAccentColor.withOpacity(0.3),
                                             width: 2,
                                           ),
                                         ),
@@ -197,14 +197,14 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                                               child: Icon(
                                                 Icons.home_rounded,
                                                 size: 60,
-                                                color: Colors.white.withOpacity(0.9),
+                                                color: Constants.lightestColor.withOpacity(0.9),
                                               ),
                                             ),
                                             Center(
                                               child: Icon(
                                                 Icons.design_services_rounded,
                                                 size: 30,
-                                                color: Colors.white.withOpacity(0.6),
+                                                color: Constants.lightAccentColor.withOpacity(0.9),
                                               ),
                                             ),
                                           ],
@@ -219,7 +219,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                                     child: Container(
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        color: Colors.white.withOpacity(flashOpacity * 0.5),
+                                        color: Constants.lightestColor.withOpacity(flashOpacity * 0.5),
                                       ),
                                     ),
                                   ),
@@ -236,7 +236,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                           style: GoogleFonts.poppins(
                             fontSize: 32,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: Constants.lightestColor,
                             letterSpacing: 1.5,
                           ),
                           child: AnimatedTextKit(
@@ -262,7 +262,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         child: Text(
                           'Transform Your Space',
                           style: GoogleFonts.poppins(
-                            color: Colors.white.withOpacity(0.7),
+                            color: Constants.lightAccentColor,
                             fontSize: 16,
                             letterSpacing: 1.2,
                             fontWeight: FontWeight.w300,
@@ -311,7 +311,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           child: Icon(
             _getIconData(index),
             size: 40 - (index * 4),
-            color: Colors.white.withOpacity(0.1),
+            color: Constants.lightAccentColor.withOpacity(0.2),
           ),
         ),
       ),

@@ -5,6 +5,7 @@ import 'package:flutter_foodybite/services/decor_provider.dart';
 import 'package:flutter_foodybite/util/const.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -212,6 +213,16 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     
     return Scaffold(
       body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Constants.lightestColor,
+              Colors.white,
+            ],
+          ),
+        ),
         padding: EdgeInsets.symmetric(horizontal: 24.0),
         child: Center(
           child: SingleChildScrollView(
@@ -226,32 +237,58 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       // Logo and app name
-                      Icon(
-                        Icons.home_work_rounded,
-                        size: 80,
-                        color: Constants.lightAccent,
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Constants.midColor.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        padding: EdgeInsets.all(20),
+                        child: Icon(
+                          Icons.home_work_rounded,
+                          size: 80,
+                          color: Constants.midColor,
+                        ),
                       ),
                       SizedBox(height: 16),
                       Text(
                         "HomeDecor Planner",
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: GoogleFonts.poppins(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
+                          color: Constants.darkestColor,
                         ),
                       ),
-                      SizedBox(height: 48),
+                      SizedBox(height: 12),
+                      Text(
+                        "Transform your space",
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          color: Constants.midColor,
+                        ),
+                      ),
+                      SizedBox(height: 36),
                       
                       // Email field
                       TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
+                        style: TextStyle(color: Constants.darkestColor),
                         decoration: InputDecoration(
                           labelText: "Email",
-                          prefixIcon: Icon(Icons.email),
-                          border: OutlineInputBorder(
+                          labelStyle: TextStyle(color: Constants.darkAccentColor),
+                          prefixIcon: Icon(Icons.email, color: Constants.midColor),
+                          focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Constants.midColor),
                           ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Constants.lightAccentColor),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -269,18 +306,28 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                       TextFormField(
                         controller: _passwordController,
                         obscureText: _obscureText,
+                        style: TextStyle(color: Constants.darkestColor),
                         decoration: InputDecoration(
                           labelText: "Password",
-                          prefixIcon: Icon(Icons.lock),
+                          labelStyle: TextStyle(color: Constants.darkAccentColor),
+                          prefixIcon: Icon(Icons.lock, color: Constants.midColor),
                           suffixIcon: IconButton(
                             icon: Icon(
                               _obscureText ? Icons.visibility : Icons.visibility_off,
+                              color: Constants.midColor,
                             ),
                             onPressed: _togglePasswordVisibility,
                           ),
-                          border: OutlineInputBorder(
+                          focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Constants.midColor),
                           ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Constants.lightAccentColor),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -299,6 +346,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         alignment: Alignment.centerRight,
                         child: TextButton(
                           onPressed: _forgotPassword,
+                          style: TextButton.styleFrom(
+                            foregroundColor: Constants.darkAccentColor,
+                          ),
                           child: Text("Forgot Password?"),
                         ),
                       ),
@@ -308,21 +358,29 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                       ElevatedButton(
                         onPressed: _isLoading ? null : _submitForm,
                         style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(vertical: 12),
-                          backgroundColor: Constants.lightAccent,
-                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          backgroundColor: Constants.midColor,
+                          foregroundColor: Constants.lightestColor,
+                          elevation: 3,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
                         child: _isLoading
-                            ? CircularProgressIndicator(color: Colors.white)
+                            ? SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  color: Constants.lightestColor,
+                                  strokeWidth: 2,
+                                ),
+                              )
                             : Text(
                                 "Login",
-                                style: TextStyle(
+                                style: GoogleFonts.poppins(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  color: Constants.lightestColor,
                                 ),
                               ),
                       ),
@@ -331,62 +389,65 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                       // Divider
                       Row(
                         children: [
-                          Expanded(child: Divider()),
+                          Expanded(child: Divider(color: Constants.lightAccentColor)),
                           Padding(
                             padding: EdgeInsets.symmetric(horizontal: 16),
-                            child: Text("OR"),
+                            child: Text(
+                              "OR",
+                              style: TextStyle(color: Constants.darkAccentColor),
+                            ),
                           ),
-                          Expanded(child: Divider()),
+                          Expanded(child: Divider(color: Constants.lightAccentColor)),
                         ],
                       ),
                       SizedBox(height: 16),
                       
                       // Google sign in button
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.2),
-                              spreadRadius: 1,
-                              blurRadius: 2,
-                              offset: Offset(0, 1),
-                            ),
-                          ],
-                        ),
-                        child: OutlinedButton.icon(
-                          onPressed: authProvider.isLoading ? null : _signInWithGoogle,
-                          icon: Container(
-                            height: 24,
-                            width: 24,
-                            child: Image.network(
-                              'https://www.freepnglogos.com/uploads/google-logo-png/google-logo-png-suite-everything-you-need-know-about-google-newest-0.png',
-                              height: 24,
-                              width: 24,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Icon(
-                                  Icons.g_mobiledata,
-                                  color: Colors.red,
-                                  size: 24,
-                                );
-                              },
-                            ),
-                          ),
-                          label: Text(
-                            "Sign in with Google",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black87,
-                            ),
-                          ),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
                           style: OutlinedButton.styleFrom(
                             padding: EdgeInsets.symmetric(vertical: 12),
-                            side: BorderSide(color: Colors.grey.shade300),
-                            backgroundColor: Colors.white,
+                            side: BorderSide(color: Constants.lightAccentColor),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
+                          ),
+                          onPressed: authProvider.isLoading
+                              ? null
+                              : _signInWithGoogle,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              // Google "G" icon drawn with CustomPaint instead of loading from URL
+                              Container(
+                                width: 24,
+                                height: 24,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    "G",
+                                    style: TextStyle(
+                                      color: Colors.red,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 12),
+                              Text(
+                                "Sign in with Google",
+                                style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  color: Constants.darkAccentColor,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -398,7 +459,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         children: [
                           Text(
                             "Don't have an account?",
-                            style: TextStyle(color: Colors.black87),
+                            style: TextStyle(color: Constants.darkAccentColor),
                           ),
                           TextButton(
                             onPressed: () {
@@ -409,12 +470,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                 ),
                               );
                             },
+                            style: TextButton.styleFrom(
+                              foregroundColor: Constants.midColor,
+                            ),
                             child: Text(
                               "Sign Up",
-                              style: TextStyle(
-                                color: Constants.lightAccent,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ),
                         ],

@@ -171,22 +171,19 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
         notchMargin: 10,
         shape: CircularNotchedRectangle(),
         color: Theme.of(context).brightness == Brightness.dark
-            ? Constants.darkPrimary
-            : Colors.white,
+            ? Constants.darkestColor
+            : Constants.lightestColor,
         child: SizedBox(
-          height: 56,
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: <Widget>[
-                buildNavItem(0),
-                buildNavItem(1),
-                SizedBox(width: 40), // Space for FAB
-                buildNavItem(3),
-                buildNavItem(4),
-              ],
-            ),
+          height: 60,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              Expanded(child: buildNavItem(0)),
+              Expanded(child: buildNavItem(1)),
+              SizedBox(width: 40), // Space for FAB
+              Expanded(child: buildNavItem(3)),
+              Expanded(child: buildNavItem(4)),
+            ],
           ),
         ),
       ),
@@ -202,11 +199,12 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
               ? 1.0 - _animationController.value * 0.2
               : 1.0,
           child: FloatingActionButton(
-            backgroundColor: Theme.of(context).colorScheme.secondary,
-            elevation: 8.0,
+            backgroundColor: Constants.midColor,
+            elevation: 4.0,
             child: Icon(
               Icons.add,
-              color: Colors.white,
+              color: Constants.lightestColor,
+              size: 28,
             ),
             onPressed: () {
               if (_page == 2) {
@@ -238,15 +236,19 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
 
   Widget buildNavItem(int index) {
     bool isSelected = _page == index;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
     return InkWell(
       onTap: () => _onItemTapped(index),
       child: AnimatedContainer(
         duration: Duration(milliseconds: 300),
         curve: Curves.easeInOut,
-        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
         decoration: isSelected 
             ? BoxDecoration(
-                color: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+                color: isDarkMode 
+                    ? Constants.darkAccentColor
+                    : Constants.midColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(20),
               )
             : null,
@@ -258,18 +260,31 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
               icons[index],
               size: 22,
               color: isSelected 
-                  ? Theme.of(context).colorScheme.secondary 
-                  : Colors.grey[400],
+                  ? isDarkMode
+                      ? Constants.lightAccentColor
+                      : Constants.midColor 
+                  : isDarkMode
+                      ? Constants.lightAccentColor.withOpacity(0.5)
+                      : Constants.darkAccentColor.withOpacity(0.5),
             ),
-            SizedBox(height: 4),
-            Text(
-              labels[index],
-              style: TextStyle(
-                fontSize: 11,
-                color: isSelected 
-                    ? Theme.of(context).colorScheme.secondary 
-                    : Colors.grey[400],
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            SizedBox(height: 2),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                labels[index],
+                style: TextStyle(
+                  fontSize: 10,
+                  color: isSelected 
+                      ? isDarkMode
+                          ? Constants.lightAccentColor
+                          : Constants.midColor 
+                      : isDarkMode
+                          ? Constants.lightAccentColor.withOpacity(0.5)
+                          : Constants.darkAccentColor.withOpacity(0.5),
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
