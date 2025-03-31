@@ -433,23 +433,29 @@ class _HomeState extends State<Home> {
   }
 
   Future<void> _initializeData() async {
-    setState(() {
-      _isLoading = true;
-    });
+    // Only show loading state if data is actually empty
+    final decorProvider = Provider.of<DecorProvider>(context, listen: false);
+    final bool shouldShowLoading = decorProvider.decorItems.isEmpty;
+    
+    if (shouldShowLoading) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
     
     // Check if we need to seed data
     await FirebaseSeeder.seedAll();
-    
-    // Load data from provider
-    final decorProvider = Provider.of<DecorProvider>(context, listen: false);
     
     // Pre-load categories from Firestore if needed
     if (decorProvider.categories.length < 4) {
       await _fetchCategoriesFromFirebase(decorProvider);
     }
     
-    // Simulate loading for smoother UI transition
-    await Future.delayed(const Duration(milliseconds: 800));
+    // Only wait if we're actually loading
+    if (shouldShowLoading) {
+      // Shorter delay for smoother UI transition
+      await Future.delayed(const Duration(milliseconds: 300));
+    }
     
     setState(() {
       _isLoading = false;
@@ -465,10 +471,35 @@ class _HomeState extends State<Home> {
       if (snapshot.docs.isNotEmpty) {
         final fetchedCategories = snapshot.docs.map((doc) {
           final data = doc.data();
+          
+          // Parse the color safely
+          Color? categoryColor;
+          if (data['color'] != null) {
+            try {
+              if (data['color'] is int) {
+                categoryColor = Color(data['color']);
+              } else if (data['color'] is String) {
+                final colorValue = data['color'] as String;
+                if (colorValue.startsWith('0x')) {
+                  categoryColor = Color(int.parse(colorValue));
+                } else if (colorValue.startsWith('#')) {
+                  categoryColor = Color(int.parse(colorValue.replaceFirst('#', '0xFF')));
+                } else {
+                  categoryColor = Color(int.parse(colorValue));
+                }
+              }
+            } catch (e) {
+              print('Error parsing color: $e');
+              categoryColor = Colors.grey[200];
+            }
+          } else {
+            categoryColor = Colors.grey[200];
+          }
+          
           return Category(
             name: data['name'] ?? '',
             icon: data['icon'] != null ? IconData(int.parse(data['icon']), fontFamily: 'MaterialIcons') : Icons.category,
-            color: data['color'] != null ? Color(int.parse(data['color'])) : Colors.grey[200],
+            color: categoryColor,
             imageUrl: data['image'] ?? '',
             itemCount: data['items'] ?? 0,
           );
@@ -484,6 +515,10 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
+    final decorProvider = Provider.of<DecorProvider>(context, listen: false);
+    
+    // Only show loading state if we're loading AND the data is empty
+    final bool showLoadingState = _isLoading && decorProvider.decorItems.isEmpty;
     
     return GestureDetector(
       onTap: () {
@@ -495,7 +530,7 @@ class _HomeState extends State<Home> {
       child: Scaffold(
         key: _scaffoldKey,
         drawer: AppDrawer(),
-        body: _isLoading 
+        body: showLoadingState 
           ? _buildLoadingState()
           : SafeArea(
             child: ListView(
@@ -509,8 +544,6 @@ class _HomeState extends State<Home> {
                 _buildPromoSlider(),
                 SizedBox(height: 32.0),
                 _buildCategorySection(),
-                SizedBox(height: 32.0),
-                _buildProjectsSection(),
                 SizedBox(height: 32.0),
                 _buildTrendingProductsSection(),
                 SizedBox(height: 24.0),
@@ -647,112 +680,186 @@ class _HomeState extends State<Home> {
     return Column(
       children: [
         Container(
-          height: 180,
+          height: 190,
+          margin: EdgeInsets.symmetric(horizontal: 4),
           child: _isPromotionsLoading
               ? _buildPromoShimmer()
-              : PageView.builder(
-                  controller: _pageController,
-                  itemCount: _promotions.length,
-                  onPageChanged: (int page) {
-                    setState(() {
-                      _currentPage = page;
-                    });
-                  },
-                  itemBuilder: (context, index) {
-                    final promo = _promotions[index];
-                    return GestureDetector(
-                      onTap: () {
-                        // Handle promo click - navigate to detail or external URL
-                        if (promo.containsKey('url') && promo['url'] != null) {
-                          // Launch URL or navigate to specific screen
-                          if (promo['url'].toString().startsWith('/')) {
-                            // Internal navigation
-                            Navigator.pushNamed(context, promo['url']);
-                          } else {
-                            // External URL or deep link handling can be added here
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Opening promotion details...'))
-                            );
-                          }
-                        }
+              : Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    PageView.builder(
+                      controller: _pageController,
+                      itemCount: _promotions.length,
+                      onPageChanged: (int page) {
+                        setState(() {
+                          _currentPage = page;
+                        });
                       },
-                      child: Container(
-                        margin: EdgeInsets.symmetric(horizontal: 5),
-                        decoration: BoxDecoration(
-                          color: Color(int.parse(promo['color'] ?? '0xFFFFF3D9')),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              flex: 3,
-                              child: Padding(
-                                padding: const EdgeInsets.all(20.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      promo['title'],
-                                      style: TextStyle(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    SizedBox(height: 12),
-                                    Row(
+                      itemBuilder: (context, index) {
+                        final Map<String, dynamic> promo = {
+                          'id': _promotions[index]['id'] ?? '',
+                          'title': _promotions[index]['title'] ?? 'Promotion',
+                          'subtitle': _promotions[index]['subtitle'] ?? 'Check now',
+                          'color': _promotions[index]['color'] ?? Color(0xFFFFF3D9),
+                          'image': _promotions[index]['image'] ?? 'https://images.pexels.com/photos/1571458/pexels-photo-1571458.jpeg',
+                          'url': _promotions[index]['url'],
+                        };
+                        return GestureDetector(
+                          onTap: () {
+                            // Handle promo click - navigate to detail or external URL
+                            if (promo['url'] != null) {
+                              // Launch URL or navigate to specific screen
+                              if (promo['url'].toString().startsWith('/')) {
+                                // Internal navigation
+                                Navigator.pushNamed(context, promo['url']);
+                              } else {
+                                // External URL or deep link handling can be added here
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Opening promotion details...'))
+                                );
+                              }
+                            }
+                          },
+                          child: Container(
+                            margin: EdgeInsets.symmetric(horizontal: 5),
+                            decoration: BoxDecoration(
+                              color: promo['color'] is Color 
+                                ? promo['color'] 
+                                : Color(0xFFFFF3D9),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Expanded(
+                                  flex: 5,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
                                         Text(
-                                          promo['subtitle'],
+                                          promo['title'],
                                           style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w500,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        SizedBox(height: 8),
+                                        Flexible(
+                                          child: Row(
+                                            children: [
+                                              Flexible(
+                                                child: Text(
+                                                  promo['subtitle'],
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                              SizedBox(width: 4),
+                                              Icon(Icons.arrow_forward, size: 14),
+                                            ],
                                           ),
                                         ),
-                                        SizedBox(width: 4),
-                                        Icon(Icons.arrow_forward, size: 16),
                                       ],
                                     ),
-                                  ],
+                                  ),
                                 ),
-                              ),
-                            ),
-                            Expanded(
-                              flex: 4,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.horizontal(right: Radius.circular(20)),
-                                child: Image.network(
-                                  promo['image'],
-                                  fit: BoxFit.cover,
-                                  loadingBuilder: (context, child, loadingProgress) {
-                                    if (loadingProgress == null) return child;
-                                    return Center(
-                                      child: CircularProgressIndicator(
-                                        value: loadingProgress.expectedTotalBytes != null
-                                            ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                                            : null,
-                                      ),
-                                    );
-                                  },
-                                  errorBuilder: (context, error, stackTrace) {
-                                    print("Error loading promotion image: $error");
-                                    return Container(
-                                      color: Colors.grey[300],
-                                      child: Icon(
-                                        Icons.image_not_supported,
-                                        size: 50,
-                                        color: Colors.grey[600],
-                                      ),
-                                    );
-                                  },
+                                Expanded(
+                                  flex: 6,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.horizontal(right: Radius.circular(20)),
+                                    child: Image.network(
+                                      promo['image'],
+                                      fit: BoxFit.cover,
+                                      height: double.infinity,
+                                      loadingBuilder: (context, child, loadingProgress) {
+                                        if (loadingProgress == null) return child;
+                                        return Center(
+                                          child: CircularProgressIndicator(
+                                            value: loadingProgress.expectedTotalBytes != null
+                                                ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                                : null,
+                                            color: Theme.of(context).colorScheme.secondary,
+                                          ),
+                                        );
+                                      },
+                                      errorBuilder: (context, error, stackTrace) {
+                                        print("Error loading promotion image: $error");
+                                        return Container(
+                                          color: Colors.grey[300],
+                                          child: Center(
+                                            child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Icon(
+                                                  Icons.image_not_supported,
+                                                  size: 30,
+                                                  color: Colors.grey[600],
+                                                ),
+                                                SizedBox(height: 8),
+                                                Text(
+                                                  'Image not available',
+                                                  style: TextStyle(
+                                                    color: Colors.grey[600],
+                                                    fontSize: 12,
+                                                  ),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                        );
+                      },
+                    ),
+                    
+                    // Navigation buttons
+                    if (!_isPromotionsLoading && _promotions.length > 1)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _buildSliderNavButton(
+                            icon: Icons.arrow_back_ios_rounded,
+                            onTap: () {
+                              if (_currentPage > 0) {
+                                _pageController.animateToPage(
+                                  _currentPage - 1,
+                                  duration: Duration(milliseconds: 300),
+                                  curve: Curves.easeInOut,
+                                );
+                              }
+                            },
+                          ),
+                          _buildSliderNavButton(
+                            icon: Icons.arrow_forward_ios_rounded,
+                            onTap: () {
+                              if (_currentPage < _promotions.length - 1) {
+                                _pageController.animateToPage(
+                                  _currentPage + 1,
+                                  duration: Duration(milliseconds: 300),
+                                  curve: Curves.easeInOut,
+                                );
+                              }
+                            },
+                          ),
+                        ],
                       ),
-                    );
-                  },
+                  ],
                 ),
         ),
         SizedBox(height: 16),
@@ -798,6 +905,32 @@ class _HomeState extends State<Home> {
       );
     }
     return indicators;
+  }
+
+  Widget _buildSliderNavButton({required IconData icon, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: EdgeInsets.symmetric(horizontal: 8),
+        padding: EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.7),
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 2,
+              offset: Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Icon(
+          icon,
+          color: Colors.black54,
+          size: 14,
+        ),
+      ),
+    );
   }
 
   Widget _buildCategorySection() {
@@ -998,81 +1131,6 @@ class _HomeState extends State<Home> {
           borderRadius: BorderRadius.circular(12),
         ),
       ),
-    );
-  }
-
-  Widget _buildProjectsSection() {
-    return Consumer<DecorProvider>(
-      builder: (context, provider, child) {
-        final projects = provider.projects;
-        
-        if (projects.isEmpty) {
-          return const SizedBox.shrink();
-        }
-        
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 16.0, right: 16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'My Projects',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                      color: Constants.darkestColor,
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.add, color: Constants.midColor),
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/add_project');
-                        },
-                        tooltip: 'Add new project',
-                        padding: EdgeInsets.zero,
-                        constraints: BoxConstraints(),
-                      ),
-                      SizedBox(width: 8),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/projects');
-                        },
-                        child: Text(
-                          'See All',
-                          style: TextStyle(
-                            color: Theme.of(context).primaryColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 16),
-            Container(
-              height: 210,
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                scrollDirection: Axis.horizontal,
-                itemCount: projects.length > 5 ? 5 : projects.length,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 16),
-                    child: ProjectPreview(project: projects[index]),
-                  );
-                },
-              ),
-            ),
-          ],
-        );
-      },
     );
   }
 
@@ -1526,45 +1584,48 @@ class _HomeState extends State<Home> {
   }
 
   Widget _buildLoadingState() {
-    return Container(
-      color: Colors.white,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.network(
-              'https://images.pexels.com/photos/1571458/pexels-photo-1571458.jpeg',
-              height: 100,
-              width: 100,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 100,
-                  width: 100,
-                  color: Colors.grey[300],
-                  child: Icon(
-                    Icons.home_work_rounded,
-                    size: 60, 
-                    color: Constants.midColor,
+    return SafeArea(
+      child: Column(
+        children: [
+          // Still show header area to maintain consistency
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Loading content...",
+                  style: TextStyle(
+                    fontSize: 20.0,
+                    fontWeight: FontWeight.bold,
                   ),
-                );
-              },
-            ),
-            const SizedBox(height: 20),
-            Shimmer.fromColors(
-              baseColor: Colors.grey[300]!,
-              highlightColor: Colors.grey[100]!,
-              child: Container(
-                width: 200,
-                height: 20,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
                 ),
+                Icon(Icons.menu),
+              ],
+            ),
+          ),
+          
+          // Loading indicator in center of screen
+          Expanded(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    "Loading products...",
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
