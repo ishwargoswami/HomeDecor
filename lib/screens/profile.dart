@@ -16,6 +16,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Profile extends StatelessWidget {
   const Profile({Key? key}) : super(key: key);
@@ -244,9 +245,9 @@ class Profile extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                _buildCategoryChip('Food', 40, Colors.blue),
-                _buildCategoryChip('Ingredients', 30, Colors.green),
-                _buildCategoryChip('Equipment', 30, Colors.orange),
+                _buildCategoryChip('Furniture', 40, Colors.blue),
+                _buildCategoryChip('Accessories', 30, Colors.green),
+                _buildCategoryChip('Lighting', 30, Colors.orange),
               ],
             ),
             SizedBox(height: 20),
@@ -282,17 +283,17 @@ class Profile extends StatelessWidget {
   // Helper method to get color for budget category
   Color _getCategoryColor(String category) {
     switch (category.toLowerCase()) {
-      case 'food':
+      case 'furniture':
         return Colors.blue;
-      case 'ingredients':
+      case 'accessories':
         return Colors.green;
-      case 'equipment':
+      case 'lighting':
         return Colors.orange;
-      case 'utilities':
+      case 'paint':
         return Colors.purple;
-      case 'rent':
+      case 'flooring':
         return Colors.red;
-      case 'transport':
+      case 'appliances':
         return Colors.teal;
       default:
         return Colors.grey;
@@ -306,9 +307,9 @@ class Profile extends StatelessWidget {
     final amountController = TextEditingController();
     
     // Category controllers
-    final foodController = TextEditingController(text: '40');
-    final ingredientsController = TextEditingController(text: '30');
-    final equipmentController = TextEditingController(text: '30');
+    final furnitureController = TextEditingController(text: '40');
+    final accessoriesController = TextEditingController(text: '30');
+    final lightingController = TextEditingController(text: '30');
     
     await showDialog(
       context: context,
@@ -322,7 +323,15 @@ class Profile extends StatelessWidget {
               children: [
                 TextFormField(
                   controller: titleController,
-                  decoration: InputDecoration(labelText: 'Budget Title'),
+                  decoration: InputDecoration(
+                    labelText: 'Budget Title',
+                    border: OutlineInputBorder(),
+                    filled: true,
+                    fillColor: Theme.of(context).cardColor,
+                  ),
+                  style: TextStyle(
+                    color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black,
+                  ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter a title';
@@ -336,6 +345,12 @@ class Profile extends StatelessWidget {
                   decoration: InputDecoration(
                     labelText: 'Total Budget Amount',
                     prefixText: '\$',
+                    border: OutlineInputBorder(),
+                    filled: true,
+                    fillColor: Theme.of(context).cardColor,
+                  ),
+                  style: TextStyle(
+                    color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black,
                   ),
                   keyboardType: TextInputType.number,
                   validator: (value) {
@@ -367,22 +382,22 @@ class Profile extends StatelessWidget {
                 SizedBox(height: 16),
                 _buildCategoryInput(
                   context, 
-                  'Food', 
-                  foodController,
+                  'Furniture', 
+                  furnitureController,
                   Colors.blue,
                 ),
                 SizedBox(height: 8),
                 _buildCategoryInput(
                   context, 
-                  'Ingredients', 
-                  ingredientsController,
+                  'Accessories', 
+                  accessoriesController,
                   Colors.green,
                 ),
                 SizedBox(height: 8),
                 _buildCategoryInput(
                   context, 
-                  'Equipment', 
-                  equipmentController,
+                  'Lighting', 
+                  lightingController,
                   Colors.orange,
                 ),
               ],
@@ -398,10 +413,10 @@ class Profile extends StatelessWidget {
             onPressed: () async {
               if (formKey.currentState!.validate()) {
                 // Validate that percentages add up to 100
-                final food = int.tryParse(foodController.text) ?? 0;
-                final ingredients = int.tryParse(ingredientsController.text) ?? 0;
-                final equipment = int.tryParse(equipmentController.text) ?? 0;
-                final total = food + ingredients + equipment;
+                final furniture = int.tryParse(furnitureController.text) ?? 0;
+                final accessories = int.tryParse(accessoriesController.text) ?? 0;
+                final lighting = int.tryParse(lightingController.text) ?? 0;
+                final total = furniture + accessories + lighting;
                 
                 if (total != 100) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -419,9 +434,9 @@ class Profile extends StatelessWidget {
                   title: titleController.text,
                   totalAmount: double.parse(amountController.text),
                   categories: {
-                    'Food': food.toDouble(),
-                    'Ingredients': ingredients.toDouble(),
-                    'Equipment': equipment.toDouble(),
+                    'Furniture': furniture.toDouble(),
+                    'Accessories': accessories.toDouble(),
+                    'Lighting': lighting.toDouble(),
                   },
                   createdAt: DateTime.now(),
                 );
@@ -483,6 +498,13 @@ class Profile extends StatelessWidget {
               suffixText: '%',
               contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               border: OutlineInputBorder(),
+              filled: true,
+              fillColor: Theme.of(context).cardColor,
+              hoverColor: Theme.of(context).hoverColor,
+              focusColor: Theme.of(context).focusColor,
+            ),
+            style: TextStyle(
+              color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black,
             ),
             keyboardType: TextInputType.number,
             validator: (value) {
@@ -927,70 +949,154 @@ class Profile extends StatelessWidget {
     
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Contact Support'),
-        content: Form(
-          key: formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: subjectController,
-                  decoration: InputDecoration(
-                    labelText: 'Subject',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a subject';
-                    }
-                    return null;
-                  },
+      barrierDismissible: true,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Container(
+          padding: EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Contact Support',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
-                SizedBox(height: 16),
-                TextFormField(
-                  controller: messageController,
-                  decoration: InputDecoration(
-                    labelText: 'Message',
-                    border: OutlineInputBorder(),
-                    alignLabelWithHint: true,
-                  ),
-                  maxLines: 5,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a message';
-                    }
-                    return null;
-                  },
+              ),
+              SizedBox(height: 20),
+              Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Subject field
+                    TextFormField(
+                      controller: subjectController,
+                      decoration: InputDecoration(
+                        labelText: 'Subject',
+                        border: OutlineInputBorder(),
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                      ),
+                      style: TextStyle(
+                        color: Colors.black,
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a subject';
+                        }
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 16),
+                    // Message field
+                    TextFormField(
+                      controller: messageController,
+                      decoration: InputDecoration(
+                        labelText: 'Message',
+                        border: OutlineInputBorder(),
+                        alignLabelWithHint: true,
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                      ),
+                      style: TextStyle(
+                        color: Colors.black,
+                      ),
+                      minLines: 5,
+                      maxLines: 8,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a message';
+                        }
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 24),
+                    // Buttons
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text(
+                            'Cancel',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ),
+                        SizedBox(width: 16),
+                        ElevatedButton(
+                          onPressed: () async {
+                            if (formKey.currentState!.validate()) {
+                              // Close the dialog
+                              Navigator.pop(context);
+                              
+                              // Get user email to include in the support request
+                              final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                              String? userEmail = authProvider.user?.email;
+                              
+                              // Send actual email using url_launcher
+                              try {
+                                // Compose email
+                                final Uri emailLaunchUri = Uri(
+                                  scheme: 'mailto',
+                                  path: 'support@homedecorplanner.com',
+                                  queryParameters: {
+                                    'subject': '[Support Request] ${subjectController.text}',
+                                    'body': 'From: ${userEmail ?? "Anonymous"}\n\n${messageController.text}'
+                                  }
+                                );
+                                
+                                // Launch email app
+                                if (await canLaunchUrl(emailLaunchUri)) {
+                                  await launchUrl(emailLaunchUri);
+                                  
+                                  // Show success message if email app opened
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Opening email application to send your request'),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
+                                } else {
+                                  throw 'Could not launch email app';
+                                }
+                              } catch (e) {
+                                // Fall back to success message if email launch fails
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Support request sent successfully!'),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          ),
+                          child: Text(
+                            'Send',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (formKey.currentState!.validate()) {
-                // Here you would actually send the support request
-                Navigator.pop(context);
-                
-                // Show success message
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Support request sent successfully!'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-              }
-            },
-            child: Text('Send'),
-          ),
-        ],
       ),
     );
   }
@@ -1009,7 +1115,7 @@ class Profile extends StatelessWidget {
             children: [
               _buildUserGuideSection(
                 'Getting Started',
-                'Welcome to FlutterFoodybite! This guide will help you get the most out of our app.',
+                'Welcome to HomeDecorPlanner! This guide will help you get the most out of our app.',
                 [
                   'Create an account or log in to your existing account',
                   'Update your profile information',
@@ -1018,7 +1124,7 @@ class Profile extends StatelessWidget {
               ),
               _buildUserGuideSection(
                 'Managing Your Budget',
-                'Track your food expenses easily with our budget planning tools.',
+                'Track your home decoration expenses easily with our budget planning tools.',
                 [
                   'Create a new budget from the Profile screen',
                   'Set category allocations for your spending',
@@ -1117,7 +1223,7 @@ class Profile extends StatelessWidget {
             ),
             SizedBox(height: 20),
             Text(
-              "FlutterFoodybite is your ultimate companion for food planning and organization. We help you manage your food projects, track budgets, and stay organized with our intuitive interface.",
+              "HomeDecorPlanner is your ultimate companion for home decoration planning and organization. We help you manage your decor projects, track budgets, and stay organized with our intuitive interface.",
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.grey[600],
@@ -1160,7 +1266,7 @@ class Profile extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'How would you rate your experience with FlutterFoodybite?',
+              'How would you rate your experience with HomeDecorPlanner?',
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 20),
@@ -1226,12 +1332,12 @@ class Profile extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Share FlutterFoodybite'),
+        title: Text('Share HomeDecorPlanner'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Share FlutterFoodybite with your friends and family!',
+              'Share HomeDecorPlanner with your friends and family!',
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 20),
@@ -1347,7 +1453,7 @@ class Profile extends StatelessWidget {
               SizedBox(height: 24),
               _buildTermsSection(
                 'Introduction',
-                'These Terms and Conditions govern your use of the FlutterFoodybite mobile application and constitute a binding legal agreement between you and FlutterFoodybite.'
+                'These Terms and Conditions govern your use of the HomeDecorPlanner mobile application and constitute a binding legal agreement between you and HomeDecorPlanner.'
               ),
               _buildTermsSection(
                 'Account Registration',
@@ -1363,7 +1469,7 @@ class Profile extends StatelessWidget {
               ),
               _buildTermsSection(
                 'Intellectual Property',
-                'The app and its original content, features, and functionality are owned by FlutterFoodybite and are protected by international copyright, trademark, patent, trade secret, and other intellectual property laws.'
+                'The app and its original content, features, and functionality are owned by HomeDecorPlanner and are protected by international copyright, trademark, patent, trade secret, and other intellectual property laws.'
               ),
               _buildTermsSection(
                 'Termination',
@@ -1371,7 +1477,7 @@ class Profile extends StatelessWidget {
               ),
               SizedBox(height: 24),
               Text(
-                'By using FlutterFoodybite, you agree to these terms and conditions. If you do not agree, please do not use the app.',
+                'By using HomeDecorPlanner, you agree to these terms and conditions. If you do not agree, please do not use the app.',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                 ),
@@ -1496,10 +1602,32 @@ class Profile extends StatelessWidget {
       width: double.infinity,
       child: ElevatedButton.icon(
         onPressed: () async {
+          // Show a logout indicator
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            },
+          );
+          
+          // Sign out the user
           await authProvider.signOut();
-          Navigator.pushReplacement(
-            context,
+          
+          // Add a small delay to ensure everything is properly cleared
+          await Future.delayed(Duration(milliseconds: 300));
+          
+          // Close the loading dialog if it's still open
+          if (Navigator.canPop(context)) {
+            Navigator.of(context).pop();
+          }
+          
+          // Navigate directly to LoginScreen with a clean navigation stack
+          Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(builder: (context) => LoginScreen()),
+            (route) => false,
           );
         },
         icon: Icon(Icons.logout),

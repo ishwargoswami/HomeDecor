@@ -32,11 +32,24 @@ class _CategoriesState extends State<Categories> {
                   borderRadius: BorderRadius.circular(8.0),
                   child: Stack(
                     children: <Widget>[
-                      Image.asset(
+                      Image.network(
                         cat["img"],
                         height: MediaQuery.of(context).size.height,
                         width: MediaQuery.of(context).size.height,
                         fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          print("Error loading image: $error");
+                          return Container(
+                            height: MediaQuery.of(context).size.height,
+                            width: MediaQuery.of(context).size.height,
+                            color: Colors.grey[300],
+                            child: Icon(
+                              Icons.image_not_supported,
+                              size: 50,
+                              color: Colors.grey[500],
+                            ),
+                          );
+                        },
                       ),
                       Container(
                         decoration: BoxDecoration(

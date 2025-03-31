@@ -16,6 +16,10 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
   late PageController _pageController;
   int _page = 0;
   late AnimationController _animationController;
+  late Animation<double> _fadeInAnimation;
+  late Animation<Offset> _slideAnimation;
+  bool _isAnimating = false;
+  
   final List<IconData> icons = [
     Icons.home_rounded,
     Icons.view_module_rounded,
@@ -40,8 +44,23 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
     _pageController = PageController();
     _animationController = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 300),
+      duration: Duration(milliseconds: 800),
     );
+
+    _fadeInAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Interval(0.0, 0.8, curve: Curves.easeOut),
+      ),
+    );
+    
+    _slideAnimation = Tween<Offset>(begin: Offset(0, 0.3), end: Offset.zero).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Interval(0.0, 0.8, curve: Curves.easeOut),
+      ),
+    );
+    
     pages = [
       Home(),
       Projects(),
@@ -49,6 +68,23 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
       Inspiration(),
       Profile(),
     ];
+    
+    // Start animation after frame is rendered
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final Map<String, dynamic>? args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      final bool fromSplash = args != null && args['fromSplash'] == true;
+      
+      if (fromSplash) {
+        setState(() {
+          _isAnimating = true;
+        });
+        _animationController.forward().then((_) {
+          setState(() {
+            _isAnimating = false;
+          });
+        });
+      }
+    });
   }
 
   @override
@@ -78,52 +114,81 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
+    final Map<String, dynamic>? args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final bool fromSplash = args != null && args['fromSplash'] == true;
+    
     return WillPopScope(
       onWillPop: () async => false,
       child: Scaffold(
-        body: PageView(
-          physics: NeverScrollableScrollPhysics(),
-          controller: _pageController,
-          onPageChanged: onPageChanged,
-          children: pages,
-        ),
-        bottomNavigationBar: Container(
-          decoration: BoxDecoration(
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 10,
-                offset: Offset(0, -5),
-              ),
-            ],
-          ),
-          child: BottomAppBar(
-            elevation: 0,
-            notchMargin: 10,
-            shape: CircularNotchedRectangle(),
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Constants.darkPrimary
-                : Colors.white,
-            child: SizedBox(
-              height: 56,
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: <Widget>[
-                    buildNavItem(0),
-                    buildNavItem(1),
-                    SizedBox(width: 40), // Space for FAB
-                    buildNavItem(3),
-                    buildNavItem(4),
-                  ],
+        body: fromSplash && _isAnimating
+            ? FadeTransition(
+                opacity: _fadeInAnimation,
+                child: SlideTransition(
+                  position: _slideAnimation,
+                  child: _buildMainContent(),
                 ),
-              ),
+              )
+            : _buildMainContent(),
+        bottomNavigationBar: fromSplash && _isAnimating
+            ? FadeTransition(
+                opacity: _fadeInAnimation,
+                child: _buildBottomNav(),
+              )
+            : _buildBottomNav(),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButton: fromSplash && _isAnimating
+            ? FadeTransition(
+                opacity: _fadeInAnimation,
+                child: _buildAnimatedFAB(),
+              )
+            : _buildAnimatedFAB(),
+      ),
+    );
+  }
+  
+  Widget _buildMainContent() {
+    return PageView(
+      physics: NeverScrollableScrollPhysics(),
+      controller: _pageController,
+      onPageChanged: onPageChanged,
+      children: pages,
+    );
+  }
+  
+  Widget _buildBottomNav() {
+    return Container(
+      decoration: BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: Offset(0, -5),
+          ),
+        ],
+      ),
+      child: BottomAppBar(
+        elevation: 0,
+        notchMargin: 10,
+        shape: CircularNotchedRectangle(),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Constants.darkPrimary
+            : Colors.white,
+        child: SizedBox(
+          height: 56,
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: <Widget>[
+                buildNavItem(0),
+                buildNavItem(1),
+                SizedBox(width: 40), // Space for FAB
+                buildNavItem(3),
+                buildNavItem(4),
+              ],
             ),
           ),
         ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        floatingActionButton: _buildAnimatedFAB(),
       ),
     );
   }

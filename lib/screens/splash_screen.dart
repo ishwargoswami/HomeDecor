@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_foodybite/screens/login_screen.dart';
-import 'package:flutter_foodybite/screens/main_screen.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter_foodybite/services/auth_provider.dart';
 import 'package:flutter_foodybite/util/const.dart';
-import 'package:flutter_foodybite/widgets/trending_loader.dart';
-import 'package:flutter_foodybite/widgets/animated_text.dart';
-import 'package:provider/provider.dart';
+import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -13,184 +11,321 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
-  late AnimationController _iconController;
-  late Animation<double> _iconAnimation;
-  
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _rotateAnimation;
+  late Animation<double> _exitAnimation;
+  late Animation<double> _finalPopAnimation;
+  late Animation<double> _flashAnimation;
+
   @override
   void initState() {
     super.initState();
-    
-    // Setup animation for the icon
-    _iconController = AnimationController(
+    _controller = AnimationController(
+      duration: Duration(seconds: 4),
       vsync: this,
-      duration: Duration(milliseconds: 1500),
     );
+
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Interval(0.0, 0.5, curve: Curves.easeOut),
+    ));
+
+    _scaleAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Interval(0.1, 0.6, curve: Curves.elasticOut),
+    ));
+
+    _rotateAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Interval(0.2, 0.7, curve: Curves.easeOut),
+    ));
     
-    _iconAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _iconController,
-        curve: Curves.elasticOut,
-      ),
-    );
+    _finalPopAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.2,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Interval(0.75, 0.85, curve: Curves.elasticInOut),
+    ));
     
-    _iconController.forward();
-    
-    _checkIfLoggedIn();
+    _flashAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Interval(0.75, 0.78, curve: Curves.easeOut),
+    ));
+
+    _exitAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Interval(0.85, 1.0, curve: Curves.easeOut),
+    ));
+
+    _controller.forward();
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        _navigateToNextScreen();
+      }
+    });
   }
-  
+
   @override
   void dispose() {
-    _iconController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
-  _checkIfLoggedIn() async {
-    // Add a delay to show splash screen
-    await Future.delayed(Duration(seconds: 3)); // Extended delay to show animation
+  _navigateToNextScreen() async {
+    if (!mounted) return;
     
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     bool isLoggedIn = await authProvider.isLoggedIn();
     
-    print("User is logged in: $isLoggedIn");
-    
+    if (!mounted) return;
+
     if (isLoggedIn) {
-      print("Navigating to main screen from splash");
-      // Use pushAndRemoveUntil to ensure clean navigation
       Navigator.of(context).pushNamedAndRemoveUntil(
         '/main',
         (route) => false,
+        arguments: {'fromSplash': true},
       );
     } else {
-      print("Navigating to login screen from splash");
-      // Use pushAndRemoveUntil to ensure clean navigation
       Navigator.of(context).pushNamedAndRemoveUntil(
         '/login',
         (route) => false,
+        arguments: {'fromSplash': true},
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final themeColor = Theme.of(context).colorScheme.secondary;
-    final screenSize = MediaQuery.of(context).size;
-    
     return Scaffold(
-      body: Stack(
-        children: [
-          // Background with gradient
-          Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  themeColor,
-                  themeColor.withOpacity(0.8),
-                ],
-              ),
+      backgroundColor: Colors.black,
+      body: FadeTransition(
+        opacity: _exitAnimation,
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFF1A1A2E),  // Deep elegant blue
+                Color(0xFF16213E),  // Rich navy
+                Color(0xFF0F3460),  // Deep royal blue
+              ],
+              stops: [0.2, 0.5, 0.8],
             ),
           ),
-          
-          // Decorative elements
-          Positioned(
-            top: screenSize.height * 0.1,
-            left: screenSize.width * 0.1,
-            child: _buildDecorativeBox(Colors.white.withOpacity(0.1), 60),
-          ),
-          Positioned(
-            bottom: screenSize.height * 0.05,
-            right: screenSize.width * 0.05,
-            child: _buildDecorativeBox(Colors.white.withOpacity(0.15), 80),
-          ),
-          Positioned(
-            top: screenSize.height * 0.2,
-            right: screenSize.width * 0.15,
-            child: _buildDecorativeBox(Colors.white.withOpacity(0.08), 40),
-          ),
-          Positioned(
-            bottom: screenSize.height * 0.2,
-            left: screenSize.width * 0.2,
-            child: _buildDecorativeBox(Colors.white.withOpacity(0.12), 50),
-          ),
-          
-          // Main content
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+          child: SafeArea(
+            child: Stack(
               children: [
-                // Animated home icon
-                ScaleTransition(
-                  scale: _iconAnimation,
-                  child: Container(
-                    padding: EdgeInsets.all(15),
-                    decoration: BoxDecoration(
-                      color: Colors.white24,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.home_work_rounded,
-                      size: 80,
-                      color: Colors.white,
-                    ),
+                // Animated background elements
+                ...List.generate(5, (index) => _buildFloatingIcon(index)),
+                
+                // Main content
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Spacer(flex: 2),
+                      // Logo container with animations
+                      ScaleTransition(
+                        scale: _scaleAnimation,
+                        child: AnimatedBuilder(
+                          animation: _finalPopAnimation,
+                          builder: (context, child) {
+                            // Create a slight pulse with shadow expansion when popping
+                            final bool isPopping = _controller.value >= 0.75 && _controller.value <= 0.85;
+                            final bool isFlashing = _controller.value >= 0.75 && _controller.value <= 0.78;
+                            final double flashOpacity = isFlashing ? _flashAnimation.value : 0.0;
+                            
+                            return Stack(
+                              children: [
+                                // The main icon with scale effect
+                                Transform.scale(
+                                  scale: _controller.value >= 0.75 ? _finalPopAnimation.value : 1.0,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(30),
+                                      boxShadow: [
+                                        if (isPopping)
+                                          BoxShadow(
+                                            color: Colors.white.withOpacity(0.3),
+                                            blurRadius: 30,
+                                            spreadRadius: 10,
+                                          ),
+                                      ],
+                                    ),
+                                    child: RotationTransition(
+                                      turns: _rotateAnimation,
+                                      child: Container(
+                                        width: 120,
+                                        height: 120,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(30),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.white.withOpacity(0.1),
+                                              blurRadius: 20,
+                                              spreadRadius: 5,
+                                            ),
+                                          ],
+                                          border: Border.all(
+                                            color: Colors.white.withOpacity(0.2),
+                                            width: 2,
+                                          ),
+                                        ),
+                                        child: Stack(
+                                          children: [
+                                            Center(
+                                              child: Icon(
+                                                Icons.home_rounded,
+                                                size: 60,
+                                                color: Colors.white.withOpacity(0.9),
+                                              ),
+                                            ),
+                                            Center(
+                                              child: Icon(
+                                                Icons.design_services_rounded,
+                                                size: 30,
+                                                color: Colors.white.withOpacity(0.6),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                // The flash overlay
+                                if (isFlashing)
+                                  Positioned.fill(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.white.withOpacity(flashOpacity * 0.5),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                      SizedBox(height: 40),
+                      // Animated text
+                      FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: DefaultTextStyle(
+                          style: GoogleFonts.poppins(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            letterSpacing: 1.5,
+                          ),
+                          child: AnimatedTextKit(
+                            animatedTexts: [
+                              TypewriterAnimatedText(
+                                'HomeDecor',
+                                speed: Duration(milliseconds: 150),
+                              ),
+                              TypewriterAnimatedText(
+                                'Planner',
+                                speed: Duration(milliseconds: 150),
+                              ),
+                            ],
+                            repeatForever: false,
+                            totalRepeatCount: 1,
+                            pause: Duration(milliseconds: 1000),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: Text(
+                          'Transform Your Space',
+                          style: GoogleFonts.poppins(
+                            color: Colors.white.withOpacity(0.7),
+                            fontSize: 16,
+                            letterSpacing: 1.2,
+                            fontWeight: FontWeight.w300,
+                          ),
+                        ),
+                      ),
+                      Spacer(),
+                      SizedBox(height: 50),
+                    ],
                   ),
-                ),
-                SizedBox(height: 30),
-                
-                // Animated app name
-                AnimatedText(
-                  text: Constants.appName,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-                
-                SizedBox(height: 10),
-                
-                // Subtitle with animation
-                AnimatedText(
-                  text: "Design your dream space",
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w400,
-                    letterSpacing: 0.5,
-                  ),
-                  duration: Duration(milliseconds: 2500),
-                ),
-                
-                SizedBox(height: 40),
-                
-                // Custom trending loader
-                TrendingLoader(
-                  primaryColor: Colors.white,
-                  backgroundColor: Colors.transparent,
-                  size: 180,
                 ),
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildDecorativeBox(Color color, double size) {
-    return Transform.rotate(
-      angle: size % 100 / 100, // slight random rotation
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(8),
         ),
       ),
     );
+  }
+
+  Widget _buildFloatingIcon(int index) {
+    final random = index * 0.2;
+    return Positioned(
+      top: 100.0 + (index * 150),
+      right: index.isEven ? -20 : null,
+      left: index.isEven ? null : -20,
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: SlideTransition(
+          position: Tween<Offset>(
+            begin: index.isEven 
+              ? Offset(-1 - random, 0)
+              : Offset(1 + random, 0),
+            end: index.isEven
+              ? Offset(1 + random, 0)
+              : Offset(-1 - random, 0),
+          ).animate(
+            CurvedAnimation(
+              parent: _controller,
+              curve: Interval(
+                0.2,
+                0.8,
+                curve: Curves.easeInOut,
+              ),
+            ),
+          ),
+          child: Icon(
+            _getIconData(index),
+            size: 40 - (index * 4),
+            color: Colors.white.withOpacity(0.1),
+          ),
+        ),
+      ),
+    );
+  }
+
+  IconData _getIconData(int index) {
+    final icons = [
+      Icons.chair_rounded,
+      Icons.table_restaurant_rounded,
+      Icons.light_rounded,
+      Icons.bed_rounded,
+      Icons.kitchen_rounded,
+    ];
+    return icons[index % icons.length];
   }
 } 

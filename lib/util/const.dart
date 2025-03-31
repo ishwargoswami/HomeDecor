@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class Constants {
   static String appName = "HomeDecor Planner";
@@ -23,13 +24,15 @@ class Constants {
       background: lightBG,
       error: errorColor,
     ),
-    textTheme: TextTheme(
-      bodyLarge: TextStyle(color: Colors.black87),
-      bodyMedium: TextStyle(color: Colors.black87),
-      titleMedium: TextStyle(color: Colors.black87),
+    textTheme: GoogleFonts.poppinsTextTheme(
+      TextTheme(
+        bodyLarge: TextStyle(color: Colors.black87),
+        bodyMedium: TextStyle(color: Colors.black87),
+        titleMedium: TextStyle(color: Colors.black87),
+      )
     ),
     appBarTheme: AppBarTheme(
-      titleTextStyle: TextStyle(
+      titleTextStyle: GoogleFonts.poppins(
         color: darkBG,
         fontSize: 18.0,
         fontWeight: FontWeight.w800,
@@ -51,13 +54,15 @@ class Constants {
       background: darkBG,
       error: errorColor,
     ),
-    textTheme: TextTheme(
-      bodyLarge: TextStyle(color: Colors.white),
-      bodyMedium: TextStyle(color: Colors.white),
-      titleMedium: TextStyle(color: Colors.white),
+    textTheme: GoogleFonts.poppinsTextTheme(
+      TextTheme(
+        bodyLarge: TextStyle(color: Colors.white),
+        bodyMedium: TextStyle(color: Colors.white),
+        titleMedium: TextStyle(color: Colors.white),
+      )
     ),
     appBarTheme: AppBarTheme(
-      titleTextStyle: TextStyle(
+      titleTextStyle: GoogleFonts.poppins(
         color: lightBG,
         fontSize: 18.0,
         fontWeight: FontWeight.w800,
