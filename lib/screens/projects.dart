@@ -177,12 +177,15 @@ class _ProjectsState extends State<Projects> {
         return Padding(
           padding: const EdgeInsets.only(bottom: 15.0),
           child: ProjectCard(
+            id: project.id ?? "",
             name: project.name!,
             description: project.description!,
             progress: project.progress!,
             room: project.room!,
             img: project.imageUrl!,
             items: project.items ?? [],
+            budget: project.budget,
+            userId: project.userId,
           ),
         );
       },

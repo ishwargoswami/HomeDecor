@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_foodybite/firebase_options.dart';
+import 'package:flutter_foodybite/screens/cart_screen.dart';
 import 'package:flutter_foodybite/screens/login_screen.dart';
 import 'package:flutter_foodybite/screens/main_screen.dart';
 import 'package:flutter_foodybite/screens/splash_screen.dart';
 import 'package:flutter_foodybite/screens/add_project.dart';
 import 'package:flutter_foodybite/screens/add_decor_item.dart';
 import 'package:flutter_foodybite/screens/project_dashboard.dart';
+import 'package:flutter_foodybite/screens/wishlist_screen.dart';
+import 'package:flutter_foodybite/screens/orders_screen.dart';
+import 'package:flutter_foodybite/screens/recently_viewed_screen.dart';
 import 'package:flutter_foodybite/services/auth_provider.dart';
 import 'package:flutter_foodybite/services/budget_provider.dart';
+import 'package:flutter_foodybite/services/cart_service.dart';
 import 'package:flutter_foodybite/services/decor_provider.dart';
 import 'package:flutter_foodybite/services/notification_provider.dart';
 import 'package:flutter_foodybite/services/theme_provider.dart';
@@ -42,6 +47,7 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => BudgetProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => CartService()),
         Provider(create: (_) => StorageService()),
       ],
       child: Consumer<ThemeProvider>(
@@ -59,6 +65,10 @@ class _MyAppState extends State<MyApp> {
               '/add_project': (context) => AddProjectScreen(),
               '/add_decor_item': (context) => AddDecorItemScreen(),
               '/dashboard': (context) => ProjectDashboardScreen(),
+              '/cart': (context) => CartScreen(),
+              '/wishlist': (context) => WishlistScreen(),
+              '/orders': (context) => OrdersScreen(),
+              '/recently_viewed': (context) => RecentlyViewedScreen(),
             },
             initialRoute: '/',
           );

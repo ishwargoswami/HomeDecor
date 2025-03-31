@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_foodybite/models/decor_item_model.dart';
 import 'package:flutter_foodybite/models/project_model.dart';
+import 'package:flutter_foodybite/models/category_model.dart';
 import 'package:flutter_foodybite/util/decor_items.dart';
 import 'package:flutter_foodybite/util/decor_projects.dart';
 import 'package:flutter_foodybite/util/categories.dart';
@@ -15,7 +16,7 @@ class DecorProvider with ChangeNotifier {
   // Data lists
   List<DecorItemModel> _decorItems = [];
   List<ProjectModel> _projects = [];
-  List<Map<String, dynamic>> _categories = [];
+  List<Category> _categories = [];
   List<String> _styles = ["Modern", "Minimalist", "Rustic", "Scandinavian", "Industrial", "Bohemian", "Contemporary"];
   
   // Selected filters
@@ -40,7 +41,7 @@ class DecorProvider with ChangeNotifier {
         ).toList();
   
   List<ProjectModel> get projects => _projects;
-  List<Map<String, dynamic>> get categories => _categories;
+  List<Category> get categories => _categories;
   List<String> get styles => _styles;
   String get selectedRoom => _selectedRoom;
   String get selectedStyle => _selectedStyle;
@@ -94,8 +95,21 @@ class DecorProvider with ChangeNotifier {
     try {
       print("Loading local decor data...");
       
-      // Load categories
-      _categories = List<Map<String, dynamic>>.from(categories);
+      // Load categories from the imported 'categories' list
+      _categories = [];
+      for (int i = 0; i < categories.length; i++) {
+        var cat = categories[i] as Map<String, dynamic>;
+        _categories.add(Category(
+          name: cat['name'] ?? '',
+          icon: cat['icon'] != null 
+              ? IconData(int.parse(cat['icon'].toString().replaceAll('0x', '')), fontFamily: 'MaterialIcons') 
+              : Icons.category,
+          color: cat['color1'] as Color? ?? Colors.grey[200]!,
+          imageUrl: cat['img'] ?? '',
+          itemCount: 0, // We'll populate this later
+        ));
+      }
+      
       print("Loaded ${_categories.length} categories");
       
       // Load decor items from the utility file
@@ -516,6 +530,26 @@ class DecorProvider with ChangeNotifier {
   void setPriceRange(double min, double max) {
     _minPrice = min;
     _maxPrice = max;
+    notifyListeners();
+  }
+  
+  // Add a method to update categories
+  void updateCategories(List<Category> newCategories) {
+    // Create a map to avoid duplicates based on name
+    final Map<String, Category> categoryMap = {};
+    
+    // First add existing categories
+    for (var category in _categories) {
+      categoryMap[category.name] = category;
+    }
+    
+    // Then update or add new ones
+    for (var category in newCategories) {
+      categoryMap[category.name] = category;
+    }
+    
+    // Convert map back to list
+    _categories = categoryMap.values.toList();
     notifyListeners();
   }
   
