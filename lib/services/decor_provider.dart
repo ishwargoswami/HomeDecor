@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_foodybite/models/decor_item_model.dart';
-import 'package:flutter_foodybite/models/project_model.dart';
-import 'package:flutter_foodybite/models/category_model.dart';
-import 'package:flutter_foodybite/util/decor_items.dart';
-import 'package:flutter_foodybite/util/decor_projects.dart';
-import 'package:flutter_foodybite/util/categories.dart';
-import 'package:flutter_foodybite/util/const.dart';
+import 'package:decor_home/models/decor_item_model.dart';
+import 'package:decor_home/models/project_model.dart';
+import 'package:decor_home/models/category_model.dart';
+import 'package:decor_home/util/decor_items.dart';
+import 'package:decor_home/util/decor_projects.dart';
+import 'package:decor_home/util/categories.dart';
+import 'package:decor_home/util/const.dart';
 
 class DecorProvider with ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

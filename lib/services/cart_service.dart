@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_foodybite/models/decor_item_model.dart';
+import 'package:decor_home/models/decor_item_model.dart';
 
 class CartItem {
   final String id;
@@ -55,6 +55,8 @@ class CartService with ChangeNotifier {
   
   List<CartItem> _items = [];
   bool _isLoading = false;
+  // Track pending operations to prevent duplicates
+  Set<String> _pendingOperations = {};
   
   // Getters
   List<CartItem> get items => _items;
@@ -71,32 +73,18 @@ class CartService with ChangeNotifier {
     return _items.fold(0, (total, item) => total + item.quantity);
   }
   
-  // Initialize the cart
-  Future<void> initializeCart() async {
+  // Load cart items
+  Future<void> loadCartItems() async {
     final user = _auth.currentUser;
     if (user == null) {
+      _isLoading = false;
       _items = [];
       notifyListeners();
       return;
     }
     
-    loadCartItems();
-    
-    // Listen for auth state changes
-    _auth.authStateChanges().listen((User? user) {
-      if (user != null) {
-        loadCartItems();
-      } else {
-        _items = [];
-        notifyListeners();
-      }
-    });
-  }
-  
-  // Load cart items
-  Future<void> loadCartItems() async {
-    final user = _auth.currentUser;
-    if (user == null) return;
+    // If we're already loading, don't start another load
+    if (_isLoading) return;
     
     try {
       _isLoading = true;
@@ -111,30 +99,54 @@ class CartService with ChangeNotifier {
           .map((doc) => CartItem.fromFirestore(doc))
           .toList();
       
-      // Get product details for each cart item
-      for (int i = 0; i < cartItems.length; i++) {
-        final itemId = cartItems[i].itemId;
-        final productDoc = await _firestore
-            .collection('users')
-            .doc(user.uid)
-            .collection('decor_items')
-            .doc(itemId)
-            .get();
-        
-        if (productDoc.exists) {
-          final product = DecorItemModel.fromMap(productDoc.data() as Map<String, dynamic>);
-          cartItems[i] = cartItems[i].copyWith(product: product);
+      // Only fetch product details if needed
+      final List<CartItem> updatedItems = [];
+      
+      for (final cartItem in cartItems) {
+        // Check if we already have product data in the existing items
+        final existingItemIndex = _items.indexWhere((item) => item.id == cartItem.id);
+        if (existingItemIndex != -1 && _items[existingItemIndex].product != null) {
+          // Reuse existing product data to avoid redundant fetches
+          updatedItems.add(cartItem.copyWith(product: _items[existingItemIndex].product));
+        } else {
+          // Fetch product details
+          try {
+            final productDoc = await _firestore
+                .collection('decor_items')
+                .doc(cartItem.itemId)
+                .get();
+            
+            if (productDoc.exists) {
+              final product = DecorItemModel.fromMap(productDoc.data() as Map<String, dynamic>);
+              updatedItems.add(cartItem.copyWith(product: product));
+            } else {
+              // Try the user's decor items collection
+              final userProductDoc = await _firestore
+                  .collection('users')
+                  .doc(user.uid)
+                  .collection('decor_items')
+                  .doc(cartItem.itemId)
+                  .get();
+                  
+              if (userProductDoc.exists) {
+                final product = DecorItemModel.fromMap(userProductDoc.data() as Map<String, dynamic>);
+                updatedItems.add(cartItem.copyWith(product: product));
+              } else {
+                // No product data found, add without product info
+                updatedItems.add(cartItem);
+              }
+            }
+          } catch (e) {
+            print('Error fetching product data: $e');
+            updatedItems.add(cartItem);
+          }
         }
       }
       
-      _items = cartItems;
+      _items = updatedItems;
       _isLoading = false;
       notifyListeners();
       
-      // Set up listener for real-time updates
-      cartRef.snapshots().listen((snapshot) {
-        loadCartItems();
-      });
     } catch (e) {
       print('Error loading cart items: $e');
       _isLoading = false;
@@ -142,12 +154,53 @@ class CartService with ChangeNotifier {
     }
   }
   
+  // Initialize the cart
+  Future<void> initializeCart() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      _items = [];
+      notifyListeners();
+      return;
+    }
+    
+    // Load cart items initially
+    await loadCartItems();
+    
+    // Set up a single listener for cart changes
+    final cartRef = _firestore.collection('users').doc(user.uid).collection('cart');
+    cartRef.snapshots().listen((snapshot) {
+      if (!_isLoading) {
+        loadCartItems();
+      }
+    });
+    
+    // Listen for auth state changes
+    _auth.authStateChanges().listen((User? user) {
+      if (user != null) {
+        if (!_isLoading) {
+          loadCartItems();
+        }
+      } else {
+        _items = [];
+        notifyListeners();
+      }
+    });
+  }
+  
   // Add item to cart
   Future<void> addToCart(String itemId, {int quantity = 1}) async {
     final user = _auth.currentUser;
     if (user == null) return;
     
+    // If this item is already being processed, skip this operation
+    if (_pendingOperations.contains(itemId)) {
+      return;
+    }
+    
     try {
+      // Mark this item as being processed
+      _pendingOperations.add(itemId);
+      
       final cartRef = _firestore
           .collection('users')
           .doc(user.uid)
@@ -173,6 +226,10 @@ class CartService with ChangeNotifier {
       }
     } catch (e) {
       print('Error adding to cart: $e');
+      rethrow; // Allow the caller to handle the error
+    } finally {
+      // Always remove from pending operations
+      _pendingOperations.remove(itemId);
     }
   }
   
@@ -242,3 +299,4 @@ class CartService with ChangeNotifier {
     }
   }
 } 
+

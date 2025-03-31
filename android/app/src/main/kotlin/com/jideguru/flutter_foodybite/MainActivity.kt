@@ -1,4 +1,4 @@
-package com.jideguru.flutter_foodybite
+package com.jideguru.decor_home
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
-import 'package:flutter_foodybite/models/decor_item_model.dart';
-import 'package:flutter_foodybite/services/cart_service.dart';
-import 'package:flutter_foodybite/services/decor_provider.dart';
-import 'package:flutter_foodybite/util/const.dart';
+import 'package:decor_home/models/decor_item_model.dart';
+import 'package:decor_home/models/wishlist_item_model.dart';
+import 'package:decor_home/services/cart_service.dart';
+import 'package:decor_home/services/decor_provider.dart';
+import 'package:decor_home/util/const.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -19,6 +20,8 @@ class _WishlistScreenState extends State<WishlistScreen> {
   
   List<String> _wishlistIds = [];
   bool _isLoading = true;
+  List<WishlistItem> _wishlistItems = [];
+  Set<String> _loadingCartItems = {};
   
   @override
   void initState() {
@@ -94,6 +97,10 @@ class _WishlistScreenState extends State<WishlistScreen> {
   }
   
   Future<void> _addToCart(BuildContext context, String itemId) async {
+    setState(() {
+      _loadingCartItems.add(itemId);
+    });
+    
     try {
       final cartService = Provider.of<CartService>(context, listen: false);
       await cartService.addToCart(itemId);
@@ -101,6 +108,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Item added to cart'),
+          duration: Duration(seconds: 2),
           action: SnackBarAction(
             label: 'VIEW CART',
             onPressed: () {
@@ -110,10 +118,15 @@ class _WishlistScreenState extends State<WishlistScreen> {
         )
       );
     } catch (e) {
-      print('Error adding to cart: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to add item to cart'))
       );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _loadingCartItems.remove(itemId);
+        });
+      }
     }
   }
   
@@ -363,18 +376,29 @@ class _WishlistScreenState extends State<WishlistScreen> {
                           ),
                         ),
                         GestureDetector(
-                          onTap: () => _addToCart(context, item.id ?? ''),
+                          onTap: _loadingCartItems.contains(item.id ?? '')
+                            ? null
+                            : () => _addToCart(context, item.id ?? ''),
                           child: Container(
                             padding: EdgeInsets.all(4),
                             decoration: BoxDecoration(
                               color: Theme.of(context).colorScheme.secondary,
                               borderRadius: BorderRadius.circular(6),
                             ),
-                            child: Icon(
-                              Icons.add_shopping_cart,
-                              color: Colors.white,
-                              size: 16,
-                            ),
+                            child: _loadingCartItems.contains(item.id ?? '')
+                              ? SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Icon(
+                                  Icons.add_shopping_cart,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
                           ),
                         ),
                       ],

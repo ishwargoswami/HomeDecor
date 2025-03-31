@@ -1,0 +1,13 @@
+To complete the app icon update, please follow these steps:
+
+1. Create a square PNG image (1024x1024 pixels) with a home decoration theme
+2. Save it as "home_decor_icon.png" in this directory (assets/icons/)
+3. The icon should use the app's color theme:
+   - Light sage background: #DAD7CD
+   - Home icon in hunter green: #3A5A40
+   - Decoration elements in fern green: #588157
+
+4. Run the following command to generate app icons:
+   flutter pub run flutter_launcher_icons
+
+This will update the app icon across Android, iOS, and web platforms to match the new DecorHome branding. 

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_foodybite/services/auth_provider.dart';
-import 'package:flutter_foodybite/util/const.dart';
+import 'package:decor_home/services/auth_provider.dart';
+import 'package:decor_home/services/cart_service.dart';
+import 'package:decor_home/util/const.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -94,6 +95,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     bool isLoggedIn = await authProvider.isLoggedIn();
+    
+    // Initialize cart service
+    final cartService = Provider.of<CartService>(context, listen: false);
+    await cartService.initializeCart();
     
     if (!mounted) return;
 
@@ -242,11 +247,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                           child: AnimatedTextKit(
                             animatedTexts: [
                               TypewriterAnimatedText(
-                                'HomeDecor',
-                                speed: Duration(milliseconds: 150),
-                              ),
-                              TypewriterAnimatedText(
-                                'Planner',
+                                'DecorHome',
                                 speed: Duration(milliseconds: 150),
                               ),
                             ],

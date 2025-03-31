@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_foodybite/services/auth_provider.dart';
-import 'package:flutter_foodybite/util/const.dart';
+import 'package:decor_home/services/auth_provider.dart';
+import 'package:decor_home/util/const.dart';
 import 'package:provider/provider.dart';
 
 class AppDrawer extends StatelessWidget {

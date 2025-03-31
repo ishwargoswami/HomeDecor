@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
-import 'package:flutter_foodybite/util/const.dart';
+import 'package:decor_home/util/const.dart';
 import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
 

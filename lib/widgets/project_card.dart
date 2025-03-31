@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_foodybite/models/project_model.dart';
-import 'package:flutter_foodybite/screens/project_details.dart';
-import 'package:flutter_foodybite/services/decor_provider.dart';
+import 'package:decor_home/models/project_model.dart';
+import 'package:decor_home/screens/project_details.dart';
+import 'package:decor_home/services/decor_provider.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:provider/provider.dart';
 

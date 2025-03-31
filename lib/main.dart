@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter_foodybite/firebase_options.dart';
-import 'package:flutter_foodybite/screens/cart_screen.dart';
-import 'package:flutter_foodybite/screens/login_screen.dart';
-import 'package:flutter_foodybite/screens/main_screen.dart';
-import 'package:flutter_foodybite/screens/splash_screen.dart';
-import 'package:flutter_foodybite/screens/add_project.dart';
-import 'package:flutter_foodybite/screens/add_decor_item.dart';
-import 'package:flutter_foodybite/screens/project_dashboard.dart';
-import 'package:flutter_foodybite/screens/wishlist_screen.dart';
-import 'package:flutter_foodybite/screens/orders_screen.dart';
-import 'package:flutter_foodybite/screens/recently_viewed_screen.dart';
-import 'package:flutter_foodybite/services/auth_provider.dart';
-import 'package:flutter_foodybite/services/budget_provider.dart';
-import 'package:flutter_foodybite/services/cart_service.dart';
-import 'package:flutter_foodybite/services/decor_provider.dart';
-import 'package:flutter_foodybite/services/notification_provider.dart';
-import 'package:flutter_foodybite/services/theme_provider.dart';
-import 'package:flutter_foodybite/services/storage_service.dart';
-import 'package:flutter_foodybite/util/const.dart';
+import 'package:decor_home/firebase_options.dart';
+import 'package:decor_home/screens/cart_screen.dart';
+import 'package:decor_home/screens/login_screen.dart';
+import 'package:decor_home/screens/main_screen.dart';
+import 'package:decor_home/screens/splash_screen.dart';
+import 'package:decor_home/screens/add_project.dart';
+import 'package:decor_home/screens/add_decor_item.dart';
+import 'package:decor_home/screens/project_dashboard.dart';
+import 'package:decor_home/screens/wishlist_screen.dart';
+import 'package:decor_home/screens/orders_screen.dart';
+import 'package:decor_home/screens/recently_viewed_screen.dart';
+import 'package:decor_home/services/auth_provider.dart';
+import 'package:decor_home/services/budget_provider.dart';
+import 'package:decor_home/services/cart_service.dart';
+import 'package:decor_home/services/decor_provider.dart';
+import 'package:decor_home/services/notification_provider.dart';
+import 'package:decor_home/services/theme_provider.dart';
+import 'package:decor_home/services/storage_service.dart';
+import 'package:decor_home/util/const.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -31,6 +31,10 @@ void main() async {
   
   runApp(MyApp());
 }
+
+// Application icon reference - use this for the app icon
+// This icon name can be used with Flutter's icon font system
+// Icons.home_work_rounded - A rounded house icon for home decoration app
 
 class MyApp extends StatefulWidget {
   @override
@@ -53,8 +57,8 @@ class _MyAppState extends State<MyApp> {
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
           return MaterialApp(
+            title: 'DecorHome',
             debugShowCheckedModeBanner: false,
-            title: Constants.appName,
             theme: Constants.lightTheme,
             darkTheme: Constants.darkTheme,
             themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,

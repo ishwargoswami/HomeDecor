@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class Constants {
-  static String appName = "HomeDecor Planner";
+  static String appName = "DecorHome";
 
   // Colors from new palette
   static Color lightestColor = Color(0xFFDAD7CD); // Light sage - for backgrounds

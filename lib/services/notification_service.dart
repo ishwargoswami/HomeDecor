@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_foodybite/models/notification_model.dart';
-import 'package:flutter_foodybite/models/user_settings_model.dart';
+import 'package:decor_home/models/notification_model.dart';
+import 'package:decor_home/models/user_settings_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationService {

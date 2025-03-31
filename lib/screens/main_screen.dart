@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_foodybite/screens/add.dart';
-import 'package:flutter_foodybite/screens/project_dashboard.dart';
-import 'package:flutter_foodybite/screens/home.dart';
-import 'package:flutter_foodybite/screens/profile.dart';
-import 'package:flutter_foodybite/screens/projects.dart';
-import 'package:flutter_foodybite/screens/inspiration.dart';
-import 'package:flutter_foodybite/util/const.dart';
+import 'package:decor_home/screens/add.dart';
+import 'package:decor_home/screens/project_dashboard.dart';
+import 'package:decor_home/screens/home.dart';
+import 'package:decor_home/screens/profile.dart';
+import 'package:decor_home/screens/projects.dart';
+import 'package:decor_home/screens/inspiration.dart';
+import 'package:decor_home/services/cart_service.dart';
+import 'package:decor_home/util/const.dart';
+import 'package:provider/provider.dart';
 
 class MainScreen extends StatefulWidget {
   @override
@@ -73,6 +75,14 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final Map<String, dynamic>? args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       final bool fromSplash = args != null && args['fromSplash'] == true;
+      
+      // Ensure cart service is initialized
+      final cartService = Provider.of<CartService>(context, listen: false);
+      if (!fromSplash) {
+        // If not coming from splash screen (which already initializes it),
+        // initialize cart service here
+        cartService.initializeCart();
+      }
       
       if (fromSplash) {
         setState(() {

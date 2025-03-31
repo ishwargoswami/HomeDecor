@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_foodybite/models/decor_item_model.dart';
-import 'package:flutter_foodybite/services/decor_provider.dart';
-import 'package:flutter_foodybite/widgets/search_card.dart';
-import 'package:flutter_foodybite/widgets/trending_item.dart';
+import 'package:decor_home/models/decor_item_model.dart';
+import 'package:decor_home/services/decor_provider.dart';
+import 'package:decor_home/widgets/search_card.dart';
+import 'package:decor_home/widgets/trending_item.dart';
 import 'package:provider/provider.dart';
 
 class Trending extends StatefulWidget {
@@ -109,3 +109,4 @@ class _TrendingState extends State<Trending> {
     );
   }
 }
+

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_foodybite/services/decor_provider.dart';
-import 'package:flutter_foodybite/widgets/search_card.dart';
-import 'package:flutter_foodybite/util/categories.dart';
-import 'package:flutter_foodybite/util/const.dart';
+import 'package:decor_home/services/decor_provider.dart';
+import 'package:decor_home/widgets/search_card.dart';
+import 'package:decor_home/util/categories.dart';
+import 'package:decor_home/util/const.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';

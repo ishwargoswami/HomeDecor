@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_foodybite/models/budget_model.dart';
+import 'package:decor_home/models/budget_model.dart';
 
 class BudgetService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

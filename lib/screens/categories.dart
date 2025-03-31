@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_foodybite/util/categories.dart';
-import 'package:flutter_foodybite/widgets/category_item.dart';
-import 'package:flutter_foodybite/util/const.dart';
+import 'package:decor_home/util/categories.dart';
+import 'package:decor_home/widgets/category_item.dart';
+import 'package:decor_home/util/const.dart';
 
 class Categories extends StatefulWidget {
   @override
@@ -88,3 +88,4 @@ class _CategoriesState extends State<Categories> {
     );
   }
 }
+

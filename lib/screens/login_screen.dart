@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_foodybite/screens/signup_screen.dart';
-import 'package:flutter_foodybite/services/auth_provider.dart' as app_auth;
-import 'package:flutter_foodybite/services/decor_provider.dart';
-import 'package:flutter_foodybite/util/const.dart';
+import 'package:decor_home/screens/signup_screen.dart';
+import 'package:decor_home/services/auth_provider.dart' as app_auth;
+import 'package:decor_home/services/decor_provider.dart';
+import 'package:decor_home/util/const.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -251,7 +251,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                       ),
                       SizedBox(height: 16),
                       Text(
-                        "HomeDecor Planner",
+                        "DecorHome",
                         textAlign: TextAlign.center,
                         style: GoogleFonts.poppins(
                           fontSize: 28,

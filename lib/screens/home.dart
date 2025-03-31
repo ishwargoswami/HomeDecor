@@ -2,28 +2,28 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_foodybite/models/decor_item_model.dart';
-import 'package:flutter_foodybite/models/project_model.dart';
-import 'package:flutter_foodybite/screens/add_decor_item.dart';
-import 'package:flutter_foodybite/screens/add_project.dart';
-import 'package:flutter_foodybite/screens/categories.dart';
-import 'package:flutter_foodybite/screens/trending.dart';
-import 'package:flutter_foodybite/services/auth_provider.dart';
-import 'package:flutter_foodybite/services/decor_provider.dart';
-import 'package:flutter_foodybite/services/cart_service.dart';
-import 'package:flutter_foodybite/util/categories.dart';
-import 'package:flutter_foodybite/util/const.dart';
-import 'package:flutter_foodybite/widgets/category_item.dart';
-import 'package:flutter_foodybite/widgets/project_preview.dart';
-import 'package:flutter_foodybite/widgets/search_card.dart';
-import 'package:flutter_foodybite/widgets/slide_item.dart';
+import 'package:decor_home/models/decor_item_model.dart';
+import 'package:decor_home/models/project_model.dart';
+import 'package:decor_home/screens/add_decor_item.dart';
+import 'package:decor_home/screens/add_project.dart';
+import 'package:decor_home/screens/categories.dart';
+import 'package:decor_home/screens/trending.dart';
+import 'package:decor_home/services/auth_provider.dart';
+import 'package:decor_home/services/decor_provider.dart';
+import 'package:decor_home/services/cart_service.dart';
+import 'package:decor_home/util/categories.dart';
+import 'package:decor_home/util/const.dart';
+import 'package:decor_home/widgets/category_item.dart';
+import 'package:decor_home/widgets/project_preview.dart';
+import 'package:decor_home/widgets/search_card.dart';
+import 'package:decor_home/widgets/slide_item.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import '../util/firebase_seeder.dart';
-import 'package:flutter_foodybite/models/category_model.dart';
-import 'package:flutter_foodybite/widgets/app_drawer.dart';
+import 'package:decor_home/models/category_model.dart';
+import 'package:decor_home/widgets/app_drawer.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -53,6 +53,7 @@ class _HomeState extends State<Home> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isLoading = true;
   bool _isInitialized = false;
+  Set<String> _loadingCartItems = {};
 
   @override
   void initState() {
@@ -356,6 +357,11 @@ class _HomeState extends State<Home> {
   
   // Add item to cart
   Future<void> _addToCart(String itemId) async {
+    // Set loading state for this specific item
+    setState(() {
+      _loadingCartItems.add(itemId);
+    });
+
     try {
       final user = _auth.currentUser;
       
@@ -407,6 +413,13 @@ class _HomeState extends State<Home> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to add item to cart'))
       );
+    } finally {
+      // Always remove loading state
+      if (mounted) {
+        setState(() {
+          _loadingCartItems.remove(itemId);
+        });
+      }
     }
   }
   
@@ -1377,18 +1390,29 @@ class _HomeState extends State<Home> {
                         Row(
                           children: [
                             GestureDetector(
-                              onTap: () => _addToCart(item.id ?? ''),
+                              onTap: _loadingCartItems.contains(item.id ?? '') 
+                                  ? null  // Disable when loading
+                                  : () => _addToCart(item.id ?? ''),
                               child: Container(
                                 padding: EdgeInsets.all(4),
                                 decoration: BoxDecoration(
                                   color: Theme.of(context).colorScheme.secondary,
                                   borderRadius: BorderRadius.circular(6),
                                 ),
-                                child: Icon(
-                                  Icons.add_shopping_cart,
-                                  color: Colors.white,
-                                  size: 16,
-                                ),
+                                child: _loadingCartItems.contains(item.id ?? '')
+                                  ? SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : Icon(
+                                      Icons.add_shopping_cart,
+                                      color: Colors.white,
+                                      size: 16,
+                                    ),
                               ),
                             ),
                             SizedBox(width: 6),

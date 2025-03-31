@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter_foodybite/models/project_model.dart';
-import 'package:flutter_foodybite/services/decor_provider.dart';
-import 'package:flutter_foodybite/util/const.dart';
+import 'package:decor_home/models/project_model.dart';
+import 'package:decor_home/services/decor_provider.dart';
+import 'package:decor_home/util/const.dart';
 import 'package:provider/provider.dart';
 
 class ProjectDashboardScreen extends StatefulWidget {

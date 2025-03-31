@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_foodybite/models/decor_item_model.dart';
-import 'package:flutter_foodybite/screens/decor_item_details.dart';
-import 'package:flutter_foodybite/util/const.dart';
+import 'package:decor_home/models/decor_item_model.dart';
+import 'package:decor_home/screens/decor_item_details.dart';
+import 'package:decor_home/util/const.dart';
 
 class SlideItem extends StatefulWidget {
   final String img;

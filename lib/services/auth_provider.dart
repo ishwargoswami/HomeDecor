@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_foodybite/models/user_model.dart';
-import 'package:flutter_foodybite/services/auth_service.dart';
+import 'package:decor_home/models/user_model.dart';
+import 'package:decor_home/services/auth_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();

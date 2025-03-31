@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_foodybite/models/budget_model.dart';
-import 'package:flutter_foodybite/services/budget_service.dart';
+import 'package:decor_home/models/budget_model.dart';
+import 'package:decor_home/services/budget_service.dart';
 
 class BudgetProvider extends ChangeNotifier {
   final BudgetService _budgetService = BudgetService();

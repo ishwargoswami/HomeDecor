@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
-import 'package:flutter_foodybite/models/decor_item_model.dart';
-import 'package:flutter_foodybite/services/cart_service.dart';
-import 'package:flutter_foodybite/util/const.dart';
+import 'package:decor_home/models/decor_item_model.dart';
+import 'package:decor_home/services/cart_service.dart';
+import 'package:decor_home/util/const.dart';
 import 'package:provider/provider.dart';
-import 'package:shimmer/shimmer.dart';
 
 class CartScreen extends StatefulWidget {
   @override
@@ -19,11 +18,9 @@ class _CartScreenState extends State<CartScreen> {
   void initState() {
     super.initState();
     
-    // Initialize cart items
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final cartService = Provider.of<CartService>(context, listen: false);
-      cartService.loadCartItems();
-    });
+    // Initialize cart items immediately
+    final cartService = Provider.of<CartService>(context, listen: false);
+    cartService.loadCartItems();
   }
   
   @override
@@ -47,14 +44,17 @@ class _CartScreenState extends State<CartScreen> {
       ),
       body: Consumer<CartService>(
         builder: (context, cartService, child) {
-          if (cartService.isLoading) {
+          // If loading and empty, show loading state
+          if (cartService.isLoading && cartService.items.isEmpty) {
             return _buildLoadingState();
           }
           
+          // If not loading and empty, show empty state
           if (cartService.items.isEmpty) {
             return _buildEmptyState();
           }
           
+          // Otherwise show items (even if still loading, to avoid flashing)
           return _buildCartItems(cartService);
         },
       ),
@@ -77,15 +77,66 @@ class _CartScreenState extends State<CartScreen> {
       itemBuilder: (context, index) {
         return Padding(
           padding: const EdgeInsets.only(bottom: 16.0),
-          child: Shimmer.fromColors(
-            baseColor: Colors.grey[300]!,
-            highlightColor: Colors.grey[100]!,
-            child: Container(
-              height: 120,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-              ),
+          child: Container(
+            height: 120,
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 120,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.horizontal(left: Radius.circular(12)),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Container(
+                          height: 16,
+                          width: 150,
+                          color: Colors.grey[300],
+                        ),
+                        Container(
+                          height: 14,
+                          width: 100,
+                          color: Colors.grey[300],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              height: 16,
+                              width: 70,
+                              color: Colors.grey[300],
+                            ),
+                            Row(
+                              children: List.generate(3, (i) => 
+                                Container(
+                                  margin: EdgeInsets.symmetric(horizontal: 4),
+                                  height: 24,
+                                  width: 24,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[300],
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         );
