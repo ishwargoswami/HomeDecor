@@ -255,4 +255,48 @@ class AuthService {
       throw e;
     }
   }
+
+  // Update user name
+  Future<void> updateUserName(String uid, String name) async {
+    try {
+      // Update Firestore document
+      await _firestore.collection('users').doc(uid).update({
+        'name': name,
+      });
+      
+      // If this is the current user, update auth profile
+      User? currentUser = _auth.currentUser;
+      if (currentUser != null && currentUser.uid == uid) {
+        await currentUser.updateDisplayName(name);
+      }
+    } catch (e) {
+      print('Error updating user name: ${e.toString()}');
+      throw e;
+    }
+  }
+
+  // Force refresh user data
+  Future<void> refreshUserData(String uid) async {
+    try {
+      final docSnapshot = await _firestore.collection('users').doc(uid).get();
+      if (docSnapshot.exists && docSnapshot.data() != null) {
+        final userData = docSnapshot.data()!;
+        // Update our user stream with the fresh data
+        final user = UserModel(
+          uid: uid,
+          email: userData['email'],
+          name: userData['name'],
+          photoUrl: userData['photoUrl'],
+        );
+        
+        // Force reload of the current user to update the authStateChanges stream
+        if (_auth.currentUser != null && _auth.currentUser!.uid == uid) {
+          await _auth.currentUser!.reload();
+        }
+      }
+    } catch (e) {
+      print('Error refreshing user data: ${e.toString()}');
+      throw e;
+    }
+  }
 } 

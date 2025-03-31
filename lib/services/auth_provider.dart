@@ -146,6 +146,12 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
   
+  // Force refresh current user
+  void refreshUser() {
+    // Just notify listeners to force UI rebuild
+    notifyListeners();
+  }
+  
   // Update user profile image
   Future<bool> updateProfileImage(String uid, String imageUrl) async {
     _setLoading(true);
@@ -163,6 +169,40 @@ class AuthProvider extends ChangeNotifier {
           name: _user!.name,
           photoUrl: imageUrl,
         );
+        
+        // Force refresh of user data stream
+        await _authService.refreshUserData(uid);
+      }
+      
+      _setLoading(false);
+      return true;
+    } catch (e) {
+      _setError(e.toString());
+      _setLoading(false);
+      return false;
+    }
+  }
+  
+  // Update user name
+  Future<bool> updateUserName(String uid, String name) async {
+    _setLoading(true);
+    _clearError();
+    
+    try {
+      // Update Firestore document
+      await _authService.updateUserName(uid, name);
+      
+      // Update local user object if it exists
+      if (_user != null && _user!.uid == uid) {
+        _user = UserModel(
+          uid: _user!.uid,
+          email: _user!.email,
+          name: name,
+          photoUrl: _user!.photoUrl,
+        );
+        
+        // Force refresh of user data stream
+        await _authService.refreshUserData(uid);
       }
       
       _setLoading(false);
