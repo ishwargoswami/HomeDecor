@@ -1,8 +1,5 @@
 # DecorHome - Home Decoration App
 
-<p align="center">
-  <img src="assets/icons/home_decor_icon.png" alt="DecorHome Logo" width="200"/>
-</p>
 
 ## 📱 About
 DecorHome is a modern Flutter application for home decoration enthusiasts. It provides a platform for exploring, planning, and implementing interior design ideas, allowing users to visualize and organize their home decoration projects.
@@ -23,17 +20,17 @@ DecorHome is a modern Flutter application for home decoration enthusiasts. It pr
 ## 📸 Screenshots
 
 <p align="center">
-  <img src="screenshots/splash_screen.png" alt="Splash Screen" width="200"/>
-  <img src="screenshots/home_screen.png" alt="Home Screen" width="200"/>
-  <img src="screenshots/detail_screen.png" alt="Detail Screen" width="200"/>
-  <img src="screenshots/cart_screen.png" alt="Cart Screen" width="200"/>
+  <img src="screenshots/splash_screen.jpg" alt="Splash Screen" width="200"/>
+  <img src="screenshots/home_screen.jpg" alt="Home Screen" width="200"/>
+  <img src="screenshots/detail_screen.jpg" alt="Detail Screen" width="200"/>
+  <img src="screenshots/cart_screen.jpg" alt="Cart Screen" width="200"/>
 </p>
 
 <p align="center">
-  <img src="screenshots/wishlist_screen.png" alt="Wishlist Screen" width="200"/>
-  <img src="screenshots/project_screen.png" alt="Project Screen" width="200"/>
-  <img src="screenshots/dashboard_screen.png" alt="Dashboard Screen" width="200"/>
-  <img src="screenshots/profile_screen.png" alt="Profile Screen" width="200"/>
+  <img src="screenshots/wishlist_screen.jpg" alt="Wishlist Screen" width="200"/>
+  <img src="screenshots/project_screen.jpg" alt="Project Screen" width="200"/>
+  <img src="screenshots/dashboard_screen.jpg" alt="Dashboard Screen" width="200"/>
+  <img src="screenshots/profile_screen.jpg" alt="Profile Screen" width="200"/>
 </p>
 
 ## 🔧 Technologies Used
