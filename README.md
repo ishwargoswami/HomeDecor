@@ -1,8 +1,34 @@
 # DecorHome - Home Decoration App
 
+<p align="center">
+  <img src="assets/icons/home_decor_icon.png" alt="DecorHome Logo" width="200"/>
+</p>
 
 ## 📱 About
 DecorHome is a modern Flutter application for home decoration enthusiasts. It provides a platform for exploring, planning, and implementing interior design ideas, allowing users to visualize and organize their home decoration projects.
+
+## ⬇️ Download & Try
+
+<p align="center">
+  <b>Direct APK Download</b><br>
+  <a href="https://github.com/ishwargoswami/HomeDecor/releases/download/v1.0.0/decor_home_v1.0.0.apk">
+    <img src="screenshots/download_badge.png" alt="Download APK" width="240"/>
+  </a>
+</p>
+
+<p align="center">
+  <b>Scan to Download</b><br>
+  <img src="screenshots/download_qr.png" alt="Download QR Code" width="180"/>
+  <br>
+  <i>Scan this QR code with your phone camera to download</i>
+</p>
+
+### Installation Instructions
+
+1. Download the APK file using the link above
+2. Enable "Install from Unknown Sources" in your device settings
+3. Open the downloaded APK file to install the app
+4. Launch the app and enjoy!
 
 ## ✨ Features
 
@@ -43,16 +69,31 @@ DecorHome is a modern Flutter application for home decoration enthusiasts. It pr
 - **Firebase Storage**: Media storage for product images
 - **Animations**: Custom animations for enhanced user experience
 
-## 🚀 Getting Started
+## ⚡ App Version History
+
+### v1.0.0 (Current)
+- Initial release with core features
+- Home decoration browsing and project planning
+- Shopping cart and checkout functionality
+- User authentication and profile management
+
+### Upcoming Features
+- Interior design recommendations
+- AR furniture preview
+- Social sharing of projects
+- Community decorating tips
+
+## 💻 For Developers
+
+If you're interested in building the app from source code:
 
 ### Prerequisites
-
 - Flutter SDK (version 3.0.0 or higher)
 - Dart SDK (version 2.16.0 or higher)
 - Android Studio / VS Code with Flutter extensions
 - Firebase account
 
-### Installation
+### Building the App
 
 1. Clone the repository:
 ```bash
@@ -72,45 +113,12 @@ flutter pub get
    - Enable Authentication methods (Email/Password and Google Sign-In)
    - Set up Firestore database with appropriate rules
 
-4. Run the app:
+4. Build the APK:
 ```bash
-flutter run
+flutter build apk --release --no-tree-shake-icons
 ```
 
-## 🏗️ Project Structure
-
-```
-lib/
-├── models/        # Data models
-├── screens/       # UI screens
-├── services/      # Business logic and services
-├── util/          # Utilities and constants
-├── widgets/       # Reusable UI components
-└── main.dart      # App entry point
-```
-
-## 🔒 Environment Setup
-
-For security reasons, sensitive information like API keys are not included in the repository. Create a `.env` file in the root directory with the following variables:
-
-```
-FIREBASE_API_KEY=your_firebase_api_key
-FIREBASE_APP_ID=your_firebase_app_id
-```
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+The APK will be generated at `build/app/outputs/flutter-apk/app-release.apk`
 
 ## 📧 Contact
 

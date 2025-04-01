@@ -509,9 +509,22 @@ class _HomeState extends State<Home> {
             categoryColor = Colors.grey[200];
           }
           
+          // Use a safer approach for icons
+          IconData iconData = Icons.category; // Default icon
+          if (data['icon'] != null) {
+            // Map common icon codes to predefined IconData constants
+            // This avoids using non-constant IconData constructors
+            try {
+              int iconCode = int.parse(data['icon'].toString());
+              iconData = _getIconFromCode(iconCode);
+            } catch (e) {
+              print('Error parsing icon code: $e');
+            }
+          }
+          
           return Category(
             name: data['name'] ?? '',
-            icon: data['icon'] != null ? IconData(int.parse(data['icon']), fontFamily: 'MaterialIcons') : Icons.category,
+            icon: iconData,
             color: categoryColor,
             imageUrl: data['image'] ?? '',
             itemCount: data['items'] ?? 0,
@@ -522,6 +535,29 @@ class _HomeState extends State<Home> {
       }
     } catch (e) {
       print('Error fetching categories: $e');
+    }
+  }
+
+  // Helper method to convert icon codes to constant IconData instances
+  IconData _getIconFromCode(int iconCode) {
+    // Map of common Material icon codes to their corresponding IconData constants
+    switch (iconCode) {
+      case 0xe3b7: return Icons.home;
+      case 0xe3ab: return Icons.chair;
+      case 0xe430: return Icons.bed;
+      case 0xe335: return Icons.lightbulb;
+      case 0xe2e8: return Icons.table_restaurant;
+      case 0xe0f1: return Icons.kitchen;
+      case 0xe58f: return Icons.bathtub;
+      case 0xe53c: return Icons.weekend;
+      case 0xe53b: return Icons.access_time; // Changed from living_outlined which may not exist
+      case 0xe51b: return Icons.desktop_windows; // Changed from desk_outlined which may not exist
+      case 0xe1a4: return Icons.restaurant; // Changed from dining_outlined which may not exist
+      case 0xe1be: return Icons.drive_file_rename_outline;
+      case 0xe1bd: return Icons.book; // Changed to ensure it exists
+      case 0xe39d: return Icons.category;
+      // Add more mappings as needed
+      default: return Icons.category; // Default fallback
     }
   }
 
