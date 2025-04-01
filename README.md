@@ -59,7 +59,7 @@ DecorHome is a modern Flutter application for home decoration enthusiasts. It pr
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/HomeDecor.git
+git clone https://github.com/ishwargoswami/HomeDecor.git
 cd HomeDecor
 ```
 
@@ -117,8 +117,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 📧 Contact
 
-For any inquiries, please reach out to: your.email@example.com
+For any inquiries, please reach out to: iishw.tech@gmail.com
 
 ---
 
-<p align="center">Made with ❤️ by Your Name</p>
+<p align="center">Made with ❤️ by Ishwar</p>
