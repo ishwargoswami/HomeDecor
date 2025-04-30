@@ -1,34 +1,8 @@
 # DecorHome - Home Decoration App
 
-<p align="center">
-  <img src="assets/icons/home_decor_icon.png" alt="DecorHome Logo" width="200"/>
-</p>
 
 ## 📱 About
 DecorHome is a modern Flutter application for home decoration enthusiasts. It provides a platform for exploring, planning, and implementing interior design ideas, allowing users to visualize and organize their home decoration projects.
-
-## ⬇️ Download & Try
-
-<p align="center">
-  <b>Direct APK Download</b><br>
-  <a href="https://github.com/ishwargoswami/HomeDecor/releases/download/v1.0.0/decor_home_v1.0.0.apk">
-    <img src="screenshots/download_badge.png" alt="Download APK" width="240"/>
-  </a>
-</p>
-
-<p align="center">
-  <b>Scan to Download</b><br>
-  <img src="screenshots/download_qr.png" alt="Download QR Code" width="180"/>
-  <br>
-  <i>Scan this QR code with your phone camera to download</i>
-</p>
-
-### Installation Instructions
-
-1. Download the APK file using the link above
-2. Enable "Install from Unknown Sources" in your device settings
-3. Open the downloaded APK file to install the app
-4. Launch the app and enjoy!
 
 ## ✨ Features
 
@@ -113,12 +87,10 @@ flutter pub get
    - Enable Authentication methods (Email/Password and Google Sign-In)
    - Set up Firestore database with appropriate rules
 
-4. Build the APK:
+4. Build and run the app in debug mode:
 ```bash
-flutter build apk --release --no-tree-shake-icons
+flutter run
 ```
-
-The APK will be generated at `build/app/outputs/flutter-apk/app-release.apk`
 
 ## 📧 Contact
 
